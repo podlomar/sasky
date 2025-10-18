@@ -2,6 +2,7 @@ import { JSX } from 'react/jsx-runtime';
 import express, { Request, Response } from 'express';
 import { prerenderToNodeStream } from 'react-dom/static';
 import { HomePage } from './pages/HomePage/index.js';
+import { loadGames, loadGamesByPlayer, ChessGame } from './db.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,8 +17,10 @@ const render = async (component: JSX.Element, res: express.Response) => {
   prelude.pipe(res);
 };
 
+const games = await loadGames();
+
 app.get('/', (req: Request, res: Response) => {
-  render(<HomePage />, res);
+  render(<HomePage totalGames={games.length} games={games} />, res);
 });
 
 app.listen(PORT, () => {
