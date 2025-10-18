@@ -36,6 +36,7 @@ app.post('/enter', async (req: Request, res: Response) => {
       whitePlayer,
       blackPlayer,
       result,
+      endingType,
       pgn
     } = req.body;
 
@@ -57,6 +58,7 @@ app.post('/enter', async (req: Request, res: Response) => {
         rating: blackPlayerData?.rating || 1500 // Use actual player rating or default
       },
       result,
+      endingType,
       ratingChange: {
         white: 0, // Default rating change, will be computed later
         black: 0  // Default rating change, will be computed later

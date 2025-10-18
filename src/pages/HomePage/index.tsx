@@ -54,7 +54,10 @@ export const HomePage = ({ totalGames, games }: Props): JSX.Element => {
               </div>
 
               <div className="col-result">
-                <span className={`result-badge result-${game.result.replace('-', '')}`}>{game.result}</span>
+                <span className={`result-badge result-${game.result.replace('-', '')}`} title={`Ended by ${game.endingType}`}>
+                  {game.result}
+                </span>
+                <div className="ending-type">{game.endingType}</div>
               </div>
 
               <div className="col-date">

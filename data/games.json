@@ -13,6 +13,7 @@
       "rating": 1450
     },
     "result": "1-0",
+    "endingType": "checkmate",
     "ratingChange": {
       "white": 10,
       "black": -10

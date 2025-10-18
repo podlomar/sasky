@@ -86,14 +86,33 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="result">Game Result</label>
-                <select id="result" name="result" required className="form-select">
-                  <option value="">Select result</option>
-                  <option value="1-0">1-0 (White wins)</option>
-                  <option value="0-1">0-1 (Black wins)</option>
-                  <option value="1/2-1/2">1/2-1/2 (Draw)</option>
-                </select>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="result">Game Result</label>
+                  <select id="result" name="result" required className="form-select">
+                    <option value="">Select result</option>
+                    <option value="1-0">1-0 (White wins)</option>
+                    <option value="0-1">0-1 (Black wins)</option>
+                    <option value="1/2-1/2">1/2-1/2 (Draw)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="endingType">How the game ended</label>
+                  <select id="endingType" name="endingType" required className="form-select">
+                    <option value="">Select ending type</option>
+                    <option value="checkmate">Checkmate</option>
+                    <option value="resignation">Resignation</option>
+                    <option value="time">Time forfeit</option>
+                    <option value="abandonment">Abandonment</option>
+                    <option value="stalemate">Stalemate</option>
+                    <option value="insufficient-material">Insufficient material</option>
+                    <option value="threefold-repetition">Threefold repetition</option>
+                    <option value="fifty-move-rule">50-move rule</option>
+                    <option value="mutual-agreement">Mutual agreement</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
               </div>
             </div>
 

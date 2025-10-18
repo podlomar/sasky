@@ -19,6 +19,7 @@ export interface ChessGame {
   white: Player;
   black: Player;
   result: string;
+  endingType: string; // How the game ended (checkmate, time, abandonment, etc.)
   ratingChange: RatingChange;
   pgn: string;
 }
