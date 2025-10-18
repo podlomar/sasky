@@ -15,9 +15,9 @@ export const GameRow = ({ game }: Props): JSX.Element => {
             <a href={`/player/${game.white.name}`} className="player-name">{game.white.name}</a>
             <span className="player-rating">({game.white.rating})</span>
             {game.ratingChange.white > 0 ? (
-              <span className="rating-change positive">+{game.ratingChange.white}</span>
+              <span>+{game.ratingChange.white}</span>
             ) : game.ratingChange.white < 0 ? (
-              <span className="rating-change negative">{game.ratingChange.white}</span>
+              <span>{game.ratingChange.white}</span>
             ) : null}
           </div>
           <span className="vs-inline">vs</span>
