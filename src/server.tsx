@@ -32,34 +32,34 @@ app.post('/enter', async (req: Request, res: Response) => {
   try {
     const {
       date,
-      url,
       description,
       whitePlayer,
-      whiteRating,
-      whiteRatingChange,
       blackPlayer,
-      blackRating,
-      blackRatingChange,
       result,
       pgn
     } = req.body;
 
+    // Get current player ratings from the players data
+    const players = await loadPlayers();
+    const whitePlayerData = players.find(p => p.name === whitePlayer);
+    const blackPlayerData = players.find(p => p.name === blackPlayer);
+
     const newGame = await saveGame({
       date,
-      url: url || '',
-      description: description || '',
+      url: `https://lichess.org/study/auto-generated-${Date.now()}`, // Auto-generated URL
+      description: description || 'Chess game',
       white: {
         name: whitePlayer,
-        rating: parseInt(whiteRating) || 1500
+        rating: whitePlayerData?.rating || 1500 // Use actual player rating or default
       },
       black: {
         name: blackPlayer,
-        rating: parseInt(blackRating) || 1500
+        rating: blackPlayerData?.rating || 1500 // Use actual player rating or default
       },
       result,
       ratingChange: {
-        white: parseInt(whiteRatingChange) || 0,
-        black: parseInt(blackRatingChange) || 0
+        white: 0, // Default rating change, will be computed later
+        black: 0  // Default rating change, will be computed later
       },
       pgn
     });

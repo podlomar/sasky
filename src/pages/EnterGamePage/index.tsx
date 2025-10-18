@@ -20,28 +20,15 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
             <div className="form-section">
               <h2>Game Information</h2>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="date">Date</label>
-                  <input
-                    type="date"
-                    id="date"
-                    name="date"
-                    required
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="url">Lichess URL</label>
-                  <input
-                    type="url"
-                    id="url"
-                    name="url"
-                    placeholder="https://lichess.org/..."
-                    className="form-input"
-                  />
-                </div>
+              <div className="form-group">
+                <label htmlFor="date">Date</label>
+                <input
+                  type="date"
+                  id="date"
+                  name="date"
+                  required
+                  className="form-input"
+                />
               </div>
 
               <div className="form-group">
@@ -54,52 +41,26 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                   className="form-input form-textarea"
                 ></textarea>
               </div>
-            </div>
-
-            <div className="form-section">
+            </div>            <div className="form-section">
               <h2>Players</h2>
 
               <div className="players-section">
-                <div className="player-selection">
+                <div className="player-selection-simple">
                   <div className="player-group white-player-group">
                     <h3>
                       <span className="player-color-large">♔</span>
                       White Player
                     </h3>
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label htmlFor="whitePlayer">Player</label>
-                        <select id="whitePlayer" name="whitePlayer" required className="form-select">
-                          <option value="">Select white player</option>
-                          {players.map((player) => (
-                            <option key={player.name} value={player.name} data-rating={player.rating}>
-                              {player.name} ({player.rating})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="whiteRating">Rating</label>
-                        <input
-                          type="number"
-                          id="whiteRating"
-                          name="whiteRating"
-                          min="800"
-                          max="3000"
-                          placeholder="1500"
-                          className="form-input"
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="whiteRatingChange">Rating Change</label>
-                        <input
-                          type="number"
-                          id="whiteRatingChange"
-                          name="whiteRatingChange"
-                          placeholder="±0"
-                          className="form-input"
-                        />
-                      </div>
+                    <div className="form-group">
+                      <label htmlFor="whitePlayer">Player</label>
+                      <select id="whitePlayer" name="whitePlayer" required className="form-select">
+                        <option value="">Select white player</option>
+                        {players.map((player) => (
+                          <option key={player.name} value={player.name}>
+                            {player.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -110,40 +71,16 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                       <span className="player-color-large">♚</span>
                       Black Player
                     </h3>
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label htmlFor="blackPlayer">Player</label>
-                        <select id="blackPlayer" name="blackPlayer" required className="form-select">
-                          <option value="">Select black player</option>
-                          {players.map((player) => (
-                            <option key={player.name} value={player.name} data-rating={player.rating}>
-                              {player.name} ({player.rating})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="blackRating">Rating</label>
-                        <input
-                          type="number"
-                          id="blackRating"
-                          name="blackRating"
-                          min="800"
-                          max="3000"
-                          placeholder="1500"
-                          className="form-input"
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="blackRatingChange">Rating Change</label>
-                        <input
-                          type="number"
-                          id="blackRatingChange"
-                          name="blackRatingChange"
-                          placeholder="±0"
-                          className="form-input"
-                        />
-                      </div>
+                    <div className="form-group">
+                      <label htmlFor="blackPlayer">Player</label>
+                      <select id="blackPlayer" name="blackPlayer" required className="form-select">
+                        <option value="">Select black player</option>
+                        {players.map((player) => (
+                          <option key={player.name} value={player.name}>
+                            {player.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -184,37 +121,6 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
             </div>
           </form>
         </div>
-
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            document.addEventListener('DOMContentLoaded', function() {
-              const whitePlayerSelect = document.getElementById('whitePlayer');
-              const blackPlayerSelect = document.getElementById('blackPlayer');
-              const whiteRatingInput = document.getElementById('whiteRating');
-              const blackRatingInput = document.getElementById('blackRating');
-              
-              if (whitePlayerSelect && whiteRatingInput) {
-                whitePlayerSelect.addEventListener('change', function() {
-                  const selectedOption = this.options[this.selectedIndex];
-                  const rating = selectedOption.getAttribute('data-rating');
-                  if (rating) {
-                    whiteRatingInput.value = rating;
-                  }
-                });
-              }
-              
-              if (blackPlayerSelect && blackRatingInput) {
-                blackPlayerSelect.addEventListener('change', function() {
-                  const selectedOption = this.options[this.selectedIndex];
-                  const rating = selectedOption.getAttribute('data-rating');
-                  if (rating) {
-                    blackRatingInput.value = rating;
-                  }
-                });
-              }
-            });
-          `
-        }} />
       </div>
     </Layout>
   );

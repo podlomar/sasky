@@ -725,6 +725,13 @@ body {
   align-items: start;
 }
 
+.player-selection-simple {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
 .player-group {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-primary);
@@ -772,6 +779,11 @@ body {
 /* Form responsive design */
 @media (max-width: 768px) {
   .player-selection {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .player-selection-simple {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
