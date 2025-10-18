@@ -22,6 +22,7 @@ export const Layout = ({ children, title = "IonCore" }: Props) => {
             <a href="/" className="nav-brand">♔ Newton Chess</a>
             <div className="nav-links">
               <a href="/" className="nav-link">All Games</a>
+              <a href="/enter" className="nav-link">Enter Game</a>
             </div>
           </div>
         </nav>

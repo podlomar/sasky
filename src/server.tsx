@@ -2,7 +2,8 @@ import { JSX } from 'react/jsx-runtime';
 import express, { Request, Response } from 'express';
 import { prerenderToNodeStream } from 'react-dom/static';
 import { HomePage } from './pages/HomePage/index.js';
-import { loadGames, loadGamesByPlayer, ChessGame } from './db.js';
+import { EnterGamePage } from './pages/EnterGamePage/index.js';
+import { loadGames, loadGamesByPlayer, loadPlayers, saveGame, ChessGame } from './db.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,10 +18,58 @@ const render = async (component: JSX.Element, res: express.Response) => {
   prelude.pipe(res);
 };
 
-const games = await loadGames();
-
-app.get('/', (req: Request, res: Response) => {
+app.get('/', async (req: Request, res: Response) => {
+  const games = await loadGames();
   render(<HomePage totalGames={games.length} games={games} />, res);
+});
+
+app.get('/enter', async (req: Request, res: Response) => {
+  const players = await loadPlayers();
+  render(<EnterGamePage players={players} />, res);
+});
+
+app.post('/enter', async (req: Request, res: Response) => {
+  try {
+    const {
+      date,
+      url,
+      description,
+      whitePlayer,
+      whiteRating,
+      whiteRatingChange,
+      blackPlayer,
+      blackRating,
+      blackRatingChange,
+      result,
+      pgn
+    } = req.body;
+
+    const newGame = await saveGame({
+      date,
+      url: url || '',
+      description: description || '',
+      white: {
+        name: whitePlayer,
+        rating: parseInt(whiteRating) || 1500
+      },
+      black: {
+        name: blackPlayer,
+        rating: parseInt(blackRating) || 1500
+      },
+      result,
+      ratingChange: {
+        white: parseInt(whiteRatingChange) || 0,
+        black: parseInt(blackRatingChange) || 0
+      },
+      pgn
+    });
+
+    // Redirect to home page after successful submission
+    res.redirect('/');
+  } catch (error) {
+    console.error('Error adding game:', error);
+    res.status(500).send('Error adding game. Please try again.');
+  }
 });
 
 app.listen(PORT, () => {
