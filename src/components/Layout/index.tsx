@@ -1,4 +1,5 @@
 import './layout.css';
+import { version } from '../../../package.json';
 
 interface Props {
   children: React.ReactNode;
@@ -7,11 +8,10 @@ interface Props {
 
 export const Layout = ({ children, title = "IonCore" }: Props) => {
   return (
-    <html lang="en">
+    <html lang="cs">
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="IonCore - Pure SSR React Application Template" />
         <title>{title}</title>
         <link rel="stylesheet" href="/css/style.css" />
       </head>
@@ -19,11 +19,11 @@ export const Layout = ({ children, title = "IonCore" }: Props) => {
       <body>
         <nav className="navbar">
           <div className="nav-container">
-            <a href="/" className="nav-brand">♔ Newton Chess</a>
+            <a href="/" className="nav-brand">Šášky</a>
             <div className="nav-links">
-              <a href="/" className="nav-link">All Games</a>
-              <a href="/players" className="nav-link">Players</a>
-              <a href="/enter" className="nav-link">Enter Game</a>
+              <a href="/" className="nav-link">Seznam her</a>
+              <a href="/players" className="nav-link">Hráči</a>
+              <a href="/enter" className="nav-link">Zadat hru</a>
             </div>
           </div>
         </nav>
@@ -34,7 +34,7 @@ export const Layout = ({ children, title = "IonCore" }: Props) => {
 
         <footer className="footer">
           <div className="container">
-            <p>&copy; 2025 Newton Chess. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Šášky, verze {version}</p>
           </div>
         </footer>
       </body>

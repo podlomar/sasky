@@ -26,6 +26,7 @@ export interface ChessGame {
   id: string;
   date: string;
   time: string;
+  timeControl: string;
   url: string | null;
   description: string | null;
   white: GamePlayer;

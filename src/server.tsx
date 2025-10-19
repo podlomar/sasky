@@ -25,13 +25,10 @@ const players = await loadPlayers();
 await recalculateRatings(games, players);
 
 const pgn = `
-[Event "F/S Return Match"]
-[Site "Belgrade, Serbia JUG"]
-[Date "1992.11.04"]
-[Round "29"]
-[White "Fischer, Robert J."]
-[Black "Spassky, Boris V."]
-[Result "1/2-1/2"]
+[White "Martin Podloucký"]
+[Black "Karel Beneš"]
+[TimeControl "8+10"]
+[Result "0-1"]
 
 1.e4 e5 2.Nf3 Nc6 3.Bb5 {This opening is called the Ruy Lopez.} 3...a6
 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 d6 8.c3 O-O 9.h3 Nb8 10.d4 Nbd7
@@ -43,7 +40,7 @@ hxg5 29.b3 Ke6 30.a3 Kd6 31.axb4 cxb4 32.Ra5 Nd5 33.f3 Bc8 34.Kf2 Bf5
 Nf2 42.g4 Bd3 43.Re6 1/2-1/2
 `;
 
-console.log(processPgn(pgn));
+// console.log(processPgn(pgn));
 
 app.get('/', async (req: Request, res: Response) => {
   const games = await loadGames();
@@ -65,6 +62,7 @@ app.post('/enter', async (req: Request, res: Response) => {
     const {
       date,
       time,
+      timeControl,
       description,
       whitePlayer,
       blackPlayer,
@@ -85,7 +83,8 @@ app.post('/enter', async (req: Request, res: Response) => {
       date,
       time,
       url: null,
-      description: description || null,
+      timeControl,
+      description: description ?? null,
       white: {
         name: whitePlayer,
         rating: whitePlayerData?.rating || 1500, // Use actual player rating or default

@@ -8,11 +8,11 @@ interface Props {
 
 export const PlayersPage = ({ players }: Props): JSX.Element => {
   return (
-    <Layout title="Players">
+    <Layout title="Šášky | Hráči">
       <div className="container">
         <header className="page-header">
-          <h1>Players</h1>
-          <p className="subtitle">ELO ratings and statistics</p>
+          <h1>Hráči</h1>
+          <p className="subtitle">ELO hodnocení a statistiky</p>
         </header>
 
         <div className="players-grid">
@@ -21,18 +21,18 @@ export const PlayersPage = ({ players }: Props): JSX.Element => {
               <div className="player-header">
                 <h2 className="player-name">{player.name}</h2>
                 <div className="current-rating">
-                  <span className="rating-label">Current Rating</span>
+                  <span className="rating-label">Aktuální hodnocení</span>
                   <span className="rating-value">{player.rating}</span>
                 </div>
               </div>
 
               <div className="player-stats">
                 <div className="stat-item">
-                  <span className="stat-label">Games Played</span>
+                  <span className="stat-label">Počet her</span>
                   <span className="stat-value">{player.games.length}</span>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-label">Rating Change</span>
+                  <span className="stat-label">Změna hodnocení</span>
                   <span className={`stat-value ${player.rating >= 800 ? 'positive' : 'negative'}`}>
                     {player.rating >= 800 ? '+' : ''}{player.rating - 800}
                   </span>

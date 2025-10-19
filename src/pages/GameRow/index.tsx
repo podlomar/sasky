@@ -45,6 +45,7 @@ export const GameRow = ({ game }: Props): JSX.Element => {
         <div className="game-datetime">
           <span className="game-date">{game.date}</span>
           <span className="game-time">{game.time}</span>
+          <span className="game-timecontrol">{game.timeControl}</span>
         </div>
       </div>
 
@@ -59,7 +60,6 @@ export const GameRow = ({ game }: Props): JSX.Element => {
           {game.url && (
             <a href={game.url} target="_blank" className="btn btn-secondary btn-sm">Lichess</a>
           )}
-          <a href={`/game/${game.id}`} className="btn btn-primary btn-sm">Details</a>
         </div>
       </div>
     </div>

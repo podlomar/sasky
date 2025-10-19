@@ -10,20 +10,20 @@ interface Props {
 
 export const HomePage = ({ totalGames, games }: Props): JSX.Element => {
   return (
-    <Layout title="Home Page">
+    <Layout title="Šášky">
       <div className="container">
         <header className="page-header">
-          <h1>Chess Games</h1>
-          <p className="subtitle">Total games: {totalGames}</p>
+          <h1>Šášky</h1>
+          <p className="subtitle">Celkem her: {totalGames}</p>
         </header>
 
         <div className="games-table">
           <div className="games-header">
-            <div className="col-players">Players</div>
-            <div className="col-result">Result</div>
-            <div className="col-date">Date</div>
-            <div className="col-description">Description</div>
-            <div className="col-actions">Actions</div>
+            <div className="col-players">Hráči</div>
+            <div className="col-result">Výsledek</div>
+            <div className="col-date">Datum</div>
+            <div className="col-description">Popis</div>
+            <div className="col-actions">Akce</div>
           </div>
 
           {games.map((game) => <GameRow game={game} key={game.id} />)}
@@ -31,8 +31,8 @@ export const HomePage = ({ totalGames, games }: Props): JSX.Element => {
 
         {games.length === 0 && (
           <div className="empty-state">
-            <h2>No games found</h2>
-            <p>There are no chess games to display.</p>
+            <h2>Nenalezeny žádné hry</h2>
+            <p>Žádné šachové hry k zobrazení.</p>
           </div>
         )}
       </div>
