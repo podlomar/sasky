@@ -8,9 +8,12 @@ export interface GameRating {
   newRating: number;
 }
 
-export interface Player {
+export interface GamePlayer {
   name: string;
   rating: number;
+}
+
+export interface Player extends GamePlayer {
   games: GameRating[];
 }
 
@@ -25,8 +28,8 @@ export interface ChessGame {
   time: string;
   url: string | null;
   description: string | null;
-  white: Player;
-  black: Player;
+  white: GamePlayer;
+  black: GamePlayer;
   result: string;
   endingType: string;
   ratingChange: RatingChange;

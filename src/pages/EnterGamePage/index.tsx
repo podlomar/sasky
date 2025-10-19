@@ -114,16 +114,16 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                   <label htmlFor="endingType">How the game ended</label>
                   <select id="endingType" name="endingType" required className="form-select">
                     <option value="">Select ending type</option>
-                    <option value="checkmate">Checkmate</option>
-                    <option value="resignation">Resignation</option>
-                    <option value="time">Time forfeit</option>
-                    <option value="abandonment">Abandonment</option>
-                    <option value="stalemate">Stalemate</option>
-                    <option value="insufficient-material">Insufficient material</option>
-                    <option value="threefold-repetition">Threefold repetition</option>
-                    <option value="fifty-move-rule">50-move rule</option>
-                    <option value="mutual-agreement">Mutual agreement</option>
-                    <option value="other">Other</option>
+                    <option value="Checkmate">Checkmate</option>
+                    <option value="Resignation">Resignation</option>
+                    <option value="Time forfeit">Time forfeit</option>
+                    <option value="Abandonment">Abandonment</option>
+                    <option value="Stalemate">Stalemate</option>
+                    <option value="Insufficient material">Insufficient material</option>
+                    <option value="Threefold repetition">Threefold repetition</option>
+                    <option value="50-move rule">50-move rule</option>
+                    <option value="Mutual agreement">Mutual agreement</option>
+                    <option value="Unknown">Unknown</option>
                   </select>
                 </div>
               </div>
