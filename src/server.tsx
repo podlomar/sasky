@@ -60,7 +60,7 @@ app.post('/enter', async (req: Request, res: Response) => {
       date,
       time,
       url: `https://lichess.org/study/auto-generated-${Date.now()}`, // Auto-generated URL
-      description: description || 'Chess game',
+      description: description || null,
       white: {
         name: whitePlayer,
         rating: whitePlayerData?.rating || 1500, // Use actual player rating or default
@@ -77,7 +77,7 @@ app.post('/enter', async (req: Request, res: Response) => {
         white: 0, // Default rating change, will be computed later
         black: 0  // Default rating change, will be computed later
       },
-      pgn
+      pgn: pgn || null
     });
 
     // Redirect to home page after successful submission

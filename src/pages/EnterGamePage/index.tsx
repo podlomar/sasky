@@ -45,7 +45,7 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="description">Description</label>
+                <label htmlFor="description">Description (optional)</label>
                 <textarea
                   id="description"
                   name="description"
@@ -130,7 +130,7 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
             </div>
 
             <div className="form-section">
-              <h2>PGN</h2>
+              <h2>PGN (optional)</h2>
               <div className="form-group">
                 <label htmlFor="pgn">Game Notation</label>
                 <textarea
@@ -139,7 +139,6 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                   rows={8}
                   placeholder="Paste the PGN notation of the game here..."
                   className="form-input form-textarea pgn-textarea"
-                  required
                 ></textarea>
                 <div className="form-help">
                   Include the complete PGN with headers and moves. You can copy this from Lichess or other chess platforms.

@@ -208,6 +208,11 @@ body {
   line-height: 1.4;
 }
 
+.no-description {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .game-actions-inline {
   display: flex;
   gap: 0.5rem;

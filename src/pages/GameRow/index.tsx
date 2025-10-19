@@ -49,12 +49,16 @@ export const GameRow = ({ game }: Props): JSX.Element => {
       </div>
 
       <div className="col-description">
-        <span className="game-description-inline">{game.description}</span>
+        <span className="game-description-inline">
+          {game.description || <em className="no-description">No description</em>}
+        </span>
       </div>
 
       <div className="col-actions">
         <div className="game-actions-inline">
-          <a href={game.url ?? '#'} target="_blank" className="btn btn-secondary btn-sm">Lichess</a>
+          {game.url && (
+            <a href={game.url} target="_blank" className="btn btn-secondary btn-sm">Lichess</a>
+          )}
           <a href={`/game/${game.id}`} className="btn btn-primary btn-sm">Details</a>
         </div>
       </div>
