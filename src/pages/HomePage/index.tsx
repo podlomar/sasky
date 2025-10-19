@@ -1,7 +1,7 @@
 import { JSX } from "react";
-import { Layout } from "../../components/Layout";
+import { Layout } from "../../components/Layout/index.js";
 import { ChessGame } from "../../db.js";
-import { GameRow } from "../GameRow";
+import { GameRow } from "../GameRow/index.js";
 
 interface Props {
   totalGames: number;

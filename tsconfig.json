@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es2024",
-    "module": "es2022",
+    "target": "es2021",
+    "module": "node16",
     "lib": [
-      "ES2024"
+      "ES2021"
     ],
     "outDir": "./dist",
     "rootDir": "./src",
@@ -15,7 +15,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "jsx": "react-jsx",
     "typeRoots": [
       "./node_modules/@types"

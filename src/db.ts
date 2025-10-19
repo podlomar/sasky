@@ -82,7 +82,8 @@ export const recalculateRatings = async (
     player.games = [];
   }
 
-  for (const game of games.toReversed()) {
+  const reversedGames = [...games].reverse();
+  for (const game of reversedGames) {
     const whitePlayer = getPlayerByName(players, game.white.name);
     const blackPlayer = getPlayerByName(players, game.black.name);
 

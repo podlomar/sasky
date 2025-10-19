@@ -1,5 +1,5 @@
 import './layout.css';
-import { version } from '../../../package.json';
+import pkg from '../../../package.json';
 
 interface Props {
   children: React.ReactNode;
@@ -34,7 +34,7 @@ export const Layout = ({ children, title = "IonCore" }: Props) => {
 
         <footer className="footer">
           <div className="container">
-            <p>&copy; {new Date().getFullYear()} Šášky, verze {version}</p>
+            <p>&copy; {new Date().getFullYear()} Šášky, verze {pkg.version}</p>
           </div>
         </footer>
       </body>
