@@ -3,6 +3,7 @@ import express, { Request, Response } from 'express';
 import { prerenderToNodeStream } from 'react-dom/static';
 import { HomePage } from './pages/HomePage/index.js';
 import { EnterGamePage } from './pages/EnterGamePage/index.js';
+import { PlayersPage } from './pages/PlayersPage/index.js';
 import { loadGames, loadPlayers, saveGame, recalculateRatings } from './db.js';
 
 const app = express();
@@ -32,6 +33,11 @@ app.get('/enter', async (req: Request, res: Response) => {
   render(<EnterGamePage players={players} />, res);
 });
 
+app.get('/players', async (req: Request, res: Response) => {
+  const players = await loadPlayers();
+  render(<PlayersPage players={players} />, res);
+});
+
 app.post('/enter', async (req: Request, res: Response) => {
   try {
     const {
@@ -57,11 +63,13 @@ app.post('/enter', async (req: Request, res: Response) => {
       description: description || 'Chess game',
       white: {
         name: whitePlayer,
-        rating: whitePlayerData?.rating || 1500 // Use actual player rating or default
+        rating: whitePlayerData?.rating || 1500, // Use actual player rating or default
+        games: whitePlayerData?.games || []
       },
       black: {
         name: blackPlayer,
-        rating: blackPlayerData?.rating || 1500 // Use actual player rating or default
+        rating: blackPlayerData?.rating || 1500, // Use actual player rating or default
+        games: blackPlayerData?.games || []
       },
       result,
       endingType,
