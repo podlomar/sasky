@@ -20,15 +20,28 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
             <div className="form-section">
               <h2>Game Information</h2>
 
-              <div className="form-group">
-                <label htmlFor="date">Date</label>
-                <input
-                  type="date"
-                  id="date"
-                  name="date"
-                  required
-                  className="form-input"
-                />
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="date">Date</label>
+                  <input
+                    type="date"
+                    id="date"
+                    name="date"
+                    required
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="time">Time</label>
+                  <input
+                    type="time"
+                    id="time"
+                    name="time"
+                    required
+                    className="form-input"
+                  />
+                </div>
               </div>
 
               <div className="form-group">

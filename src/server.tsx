@@ -3,7 +3,7 @@ import express, { Request, Response } from 'express';
 import { prerenderToNodeStream } from 'react-dom/static';
 import { HomePage } from './pages/HomePage/index.js';
 import { EnterGamePage } from './pages/EnterGamePage/index.js';
-import { loadGames, loadGamesByPlayer, loadPlayers, saveGame, ChessGame } from './db.js';
+import { loadGames, loadPlayers, saveGame, recalculateRatings } from './db.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,6 +17,10 @@ const render = async (component: JSX.Element, res: express.Response) => {
   const { prelude } = await prerenderToNodeStream(component);
   prelude.pipe(res);
 };
+
+const games = await loadGames();
+const players = await loadPlayers();
+await recalculateRatings(games, players);
 
 app.get('/', async (req: Request, res: Response) => {
   const games = await loadGames();
@@ -32,6 +36,7 @@ app.post('/enter', async (req: Request, res: Response) => {
   try {
     const {
       date,
+      time,
       description,
       whitePlayer,
       blackPlayer,
@@ -47,6 +52,7 @@ app.post('/enter', async (req: Request, res: Response) => {
 
     const newGame = await saveGame({
       date,
+      time,
       url: `https://lichess.org/study/auto-generated-${Date.now()}`, // Auto-generated URL
       description: description || 'Chess game',
       white: {
@@ -77,3 +83,4 @@ app.post('/enter', async (req: Request, res: Response) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+

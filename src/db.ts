@@ -3,9 +3,15 @@ import path from 'node:path';
 import { nanoid } from 'nanoid';
 import { calculateEloRating } from './elo.js';
 
+export interface GameRating {
+  gameId: string;
+  newRating: number;
+}
+
 export interface Player {
   name: string;
   rating: number;
+  games: GameRating[];
 }
 
 export interface RatingChange {
@@ -17,14 +23,14 @@ export interface ChessGame {
   id: string;
   date: string;
   time: string;
-  url: string;
-  description: string;
+  url: string | null;
+  description: string | null;
   white: Player;
   black: Player;
   result: string;
   endingType: string;
   ratingChange: RatingChange;
-  pgn: string;
+  pgn: string | null;
 }
 
 export const saveGames = async (games: ChessGame[]): Promise<void> => {
@@ -62,14 +68,17 @@ const getPlayerByName = (players: Player[], name: string): Player | null => {
   return player ?? null;
 };
 
-const recalculateRatings = async (
+export const recalculateRatings = async (
   games: ChessGame[], players: Player[]
 ): Promise<void> => {
   sortGamesByDateAndTime(games);
-  let whiteRating = 800;
-  let blackRating = 800;
 
-  for (const game of games) {
+  for (const player of players) {
+    player.rating = 800;
+    player.games = [];
+  }
+
+  for (const game of games.toReversed()) {
     const whitePlayer = getPlayerByName(players, game.white.name);
     const blackPlayer = getPlayerByName(players, game.black.name);
 
@@ -85,24 +94,27 @@ const recalculateRatings = async (
       : game.result === '1-0' ? 0 : 0.5;
 
     const newWhiteRating = calculateEloRating(
-      whiteRating,
-      blackRating,
+      whitePlayer.rating,
+      blackPlayer.rating,
       scoreWhite
     );
     const newBlackRating = calculateEloRating(
-      blackRating,
-      whiteRating,
+      blackPlayer.rating,
+      whitePlayer.rating,
       scoreBlack
     );
 
-    game.ratingChange.white = newWhiteRating - whiteRating;
-    game.ratingChange.black = newBlackRating - blackRating;
+    game.ratingChange.white = newWhiteRating - whitePlayer.rating;
+    game.ratingChange.black = newBlackRating - blackPlayer.rating;
 
-    whiteRating = newWhiteRating;
-    blackRating = newBlackRating;
+    whitePlayer.rating = newWhiteRating;
+    blackPlayer.rating = newBlackRating;
 
-    whitePlayer.rating = whiteRating;
-    blackPlayer.rating = blackRating;
+    game.white.rating = newWhiteRating;
+    game.black.rating = newBlackRating;
+
+    whitePlayer.games.push({ gameId: game.id, newRating: newWhiteRating });
+    blackPlayer.games.push({ gameId: game.id, newRating: newBlackRating });
   }
 
   await saveGames(games);

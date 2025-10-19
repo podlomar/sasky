@@ -42,7 +42,10 @@ export const GameRow = ({ game }: Props): JSX.Element => {
       </div>
 
       <div className="col-date">
-        <span className="game-date">{game.date}</span>
+        <div className="game-datetime">
+          <span className="game-date">{game.date}</span>
+          <span className="game-time">{game.time}</span>
+        </div>
       </div>
 
       <div className="col-description">
@@ -51,7 +54,7 @@ export const GameRow = ({ game }: Props): JSX.Element => {
 
       <div className="col-actions">
         <div className="game-actions-inline">
-          <a href={game.url} target="_blank" className="btn btn-secondary btn-sm">Lichess</a>
+          <a href={game.url ?? '#'} target="_blank" className="btn btn-secondary btn-sm">Lichess</a>
           <a href={`/game/${game.id}`} className="btn btn-primary btn-sm">Details</a>
         </div>
       </div>
