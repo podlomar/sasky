@@ -22,7 +22,7 @@ export const Layout = ({ children, title = "IonCore" }: Props): JSX.Element => {
       <body>
         <Navbar />
 
-        <main className="main-content">
+        <main className="container">
           {children}
         </main>
 
