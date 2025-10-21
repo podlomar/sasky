@@ -1,6 +1,6 @@
 import { JSX } from "react";
-import pkg from '../../../package.json';
 import { Navbar } from "../Navbar/index.js";
+import { Footer } from "../Footer/index.js";
 import './layout.css';
 
 interface Props {
@@ -26,11 +26,7 @@ export const Layout = ({ children, title = "IonCore" }: Props): JSX.Element => {
           {children}
         </main>
 
-        <footer className="footer">
-          <div className="container">
-            <p>&copy; {new Date().getFullYear()} Šášky, verze {pkg.version}</p>
-          </div>
-        </footer>
+        <Footer />
       </body>
     </html>
   );
