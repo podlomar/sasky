@@ -1,7 +1,8 @@
 import { JSX } from "react";
-import { Layout } from "../../components/Layout/index.js";
 import { ChessGame } from "../../db.js";
-import { GameRow } from "../GameRow/index.js";
+import { Layout } from "../../components/Layout/index.js";
+import { PageHeader } from "../../components/PageHeader/index.js";
+import { GameRow } from "./components/GameRow/index.js";
 
 interface Props {
   totalGames: number;
@@ -12,10 +13,7 @@ export const HomePage = ({ totalGames, games }: Props): JSX.Element => {
   return (
     <Layout title="Šášky">
       <div className="container">
-        <header className="page-header">
-          <h1>Šášky</h1>
-          <p className="subtitle">Celkem her: {totalGames}</p>
-        </header>
+        <PageHeader title="Šášky" subtitle={`Celkem her: ${totalGames}`} />
 
         <div className="games-table">
           <div className="games-header">

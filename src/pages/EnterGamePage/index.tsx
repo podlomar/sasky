@@ -1,5 +1,6 @@
 import { JSX } from "react";
-import { Layout } from "../../components/Layout";
+import { Layout } from "../../components/Layout/index.js";
+import { PageHeader } from "../../components/PageHeader/index.js";
 import { Player } from "../../db.js";
 
 interface Props {
@@ -10,10 +11,10 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
   return (
     <Layout title="Šášky | Zadat novou hru">
       <div className="container">
-        <header className="page-header">
-          <h1>Zadat novou hru</h1>
-          <p className="subtitle">Přidat novou šachovou hru do databáze</p>
-        </header>
+        <PageHeader
+          title="Zadat novou hru"
+          subtitle="Přidat novou šachovou hru do databáze"
+        />
 
         <div className="enter-game-form">
           <form action="/enter" method="POST" className="game-form">

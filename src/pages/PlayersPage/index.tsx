@@ -1,5 +1,6 @@
 import { JSX } from "react";
 import { Layout } from "../../components/Layout/index.js";
+import { PageHeader } from "../../components/PageHeader/index.js";
 import { Player } from "../../db.js";
 
 interface Props {
@@ -10,10 +11,10 @@ export const PlayersPage = ({ players }: Props): JSX.Element => {
   return (
     <Layout title="Šášky | Hráči">
       <div className="container">
-        <header className="page-header">
-          <h1>Hráči</h1>
-          <p className="subtitle">ELO hodnocení a statistiky</p>
-        </header>
+        <PageHeader
+          title="Hráči"
+          subtitle="ELO hodnocení a statistiky"
+        />
 
         <div className="players-grid">
           {players.map((player) => (

@@ -1,5 +1,5 @@
 import { JSX } from "react";
-import { ChessGame } from "../../db.js";
+import { ChessGame } from "../../../../db.js";
 
 interface Props {
   game: ChessGame;
