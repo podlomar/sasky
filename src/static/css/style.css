@@ -51,7 +51,7 @@
 
 .games-header {
   display: grid;
-  grid-template-columns: 2fr 0.8fr 1fr 2fr 1.2fr;
+  grid-template-columns: 3fr 0.8fr 1fr 2fr 1.2fr;
   gap: 1rem;
   padding: 1rem 1.5rem;
   background: var(--bg-secondary);
@@ -65,7 +65,7 @@
 
 .game-row {
   display: grid;
-  grid-template-columns: 2fr 0.8fr 1fr 2fr 1.2fr;
+  grid-template-columns: 3fr 0.8fr 1fr 2fr 1.2fr;
   gap: 1rem;
   padding: 1.2rem 1.5rem;
   background: var(--bg-card);
@@ -105,11 +105,6 @@
 .game-description-inline {
   color: var(--text-secondary);
   font-size: 0.9rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
   line-height: 1.4;
 }
 
