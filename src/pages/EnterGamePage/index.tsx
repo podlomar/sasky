@@ -1,6 +1,7 @@
 import { JSX } from "react";
 import { Layout } from "../../components/Layout/index.js";
 import { PageHeader } from "../../components/PageHeader/index.js";
+import { Button } from "../../components/Button/index.js";
 import { getTerminationOptions, Player } from "../../db.js";
 
 interface Props {
@@ -151,8 +152,8 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
             </div>
 
             <div className="form-actions">
-              <a href="/" className="btn btn-secondary">Zrušit</a>
-              <button type="submit" className="btn btn-primary">Přidat hru</button>
+              <Button href="/" variant="secondary">Zrušit</Button>
+              <Button type="submit" variant="primary">Přidat hru</Button>
             </div>
           </form>
         </div>

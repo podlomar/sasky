@@ -1,5 +1,5 @@
 import { JSX } from "react";
-import pkg from '../../../package.json';
+import pkg from '../../../package.json' with { type: 'json' };
 import styles from './styles.module.css';
 
 export const Footer = (): JSX.Element => {

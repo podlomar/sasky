@@ -3,6 +3,7 @@ import { ChessGame } from "../../db.js";
 import { Layout } from "../../components/Layout/index.js";
 import { PageHeader } from "../../components/PageHeader/index.js";
 import { GameRow } from "./components/GameRow/index.js";
+import styles from "./styles.module.css";
 
 interface Props {
   totalGames: number;
@@ -15,8 +16,8 @@ export const HomePage = ({ totalGames, games }: Props): JSX.Element => {
       <div className="container">
         <PageHeader title="Šášky" subtitle={`Celkem her: ${totalGames}`} />
 
-        <div className="games-table">
-          <div className="games-header">
+        <div className={styles.gamesTable}>
+          <div className={styles.gamesHeader}>
             <div className="col-players">Hráči</div>
             <div className="col-result">Výsledek</div>
             <div className="col-date">Datum</div>
@@ -28,7 +29,7 @@ export const HomePage = ({ totalGames, games }: Props): JSX.Element => {
         </div>
 
         {games.length === 0 && (
-          <div className="empty-state">
+          <div className={styles.emptyState}>
             <h2>Nenalezeny žádné hry</h2>
             <p>Žádné šachové hry k zobrazení.</p>
           </div>

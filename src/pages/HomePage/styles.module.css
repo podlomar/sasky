@@ -1,0 +1,35 @@
+.gamesTable {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 3rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.gamesHeader {
+  display: grid;
+  grid-template-columns: 3fr 0.8fr 1fr 2fr 1.2fr;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-secondary);
+}
+
+.emptyState h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
