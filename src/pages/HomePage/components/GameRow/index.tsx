@@ -1,5 +1,5 @@
 import { JSX } from "react";
-import { ChessGame } from "../../../../db.js";
+import { ChessGame, getTerminationDescription } from "../../../../db.js";
 
 interface Props {
   game: ChessGame;
@@ -12,7 +12,7 @@ export const GameRow = ({ game }: Props): JSX.Element => {
         <div className="players-inline">
           <div className="player-inline white-player">
             <span className="player-color">♔</span>
-            <a href={`/player/${game.white.name}`} className="player-name">{game.white.name}</a>
+            <span className="player-name">{game.white.name}</span>
             <span className="player-rating">({game.white.rating})</span>
             {game.ratingChange.white > 0 ? (
               <span>+{game.ratingChange.white}</span>
@@ -23,7 +23,7 @@ export const GameRow = ({ game }: Props): JSX.Element => {
           <span className="vs-inline">vs</span>
           <div className="player-inline black-player">
             <span className="player-color">♚</span>
-            <a href={`/player/${game.black.name}`} className="player-name">{game.black.name}</a>
+            <span className="player-name">{game.black.name}</span>
             <span className="player-rating">({game.black.rating})</span>
             {game.ratingChange.black > 0 ? (
               <span className="rating-change positive">+{game.ratingChange.black}</span>
@@ -35,23 +35,25 @@ export const GameRow = ({ game }: Props): JSX.Element => {
       </div>
 
       <div className="col-result">
-        <span className={`result-badge result-${game.result.replace('-', '')}`} title={`Ended by ${game.endingType}`}>
+        <div className="game-timecontrol">{game.timeControl}</div>
+        <span className={`result-badge result-${game.result.replace(/-\//, '')}`}>
           {game.result}
         </span>
-        <div className="ending-type">{game.endingType}</div>
+        <div className="ending-type">
+          Zakončení: {getTerminationDescription(game.termination).name}
+        </div>
       </div>
 
       <div className="col-date">
         <div className="game-datetime">
-          <span className="game-date">{game.date}</span>
-          <span className="game-time">{game.time}</span>
-          <span className="game-timecontrol">{game.timeControl}</span>
+          <span className="game-date">{game.datetime.split('T')[0]}</span>
+          <span className="game-time">{game.datetime.split('T')[1]}</span>
         </div>
       </div>
 
       <div className="col-description">
         <span className="game-description-inline">
-          {game.description || <em className="no-description">No description</em>}
+          {game.description || <em className="no-description">Bez popisu</em>}
         </span>
       </div>
 

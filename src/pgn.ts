@@ -1,84 +1,65 @@
-export const processPgn = (pgn: string): string => {
-  // Remove tags
-  pgn = pgn.replace(/\[[^\]]*\]/g, '').trim();
+import { parseGame } from '@mliebelt/pgn-parser';
+import { ChessGame, getTerminationDescription, Player, Termination } from './db.js';
 
-  // Remove extra whitespace
-  pgn = pgn.replace(/\s+/g, ' ').trim();
+export const purifyPgn = (pgn: string): string => {
+  const tree = parseGame(pgn);
 
-  // Remove comments
-  pgn = pgn.replace(/;[^\n]*/g, '').trim();
-
-  // Remove variations
-  pgn = pgn.replace(/\{[^\}]*\}/g, '').trim();
-
-  return pgn.trim();
-};
-
-interface Turn {
-  turnNumber: number;
-  whiteMove: string;
-  blackMove?: string;
-}
-
-const readTurnNumber = (input: string, index: number): { turn: number; newIndex: number } | null => {
-  const turnRegex = /\s*(\d+)\.\s*/y;
-  turnRegex.lastIndex = index;
-  const match = turnRegex.exec(input);
-  if (match) {
-    return { turn: parseInt(match[1], 10), newIndex: turnRegex.lastIndex };
-  }
-  return null;
-};
-
-const readMove = (input: string, index: number): { move: string; newIndex: number } | null => {
-  const moveRegex = /\s*([PNBRQK]?[a-h]?[1-8]?x?[a-h][1-8](=[NBRQK])?|O-O(-O)?)\s*/y;
-  moveRegex.lastIndex = index;
-  const match = moveRegex.exec(input);
-  if (match) {
-    return { move: match[1], newIndex: moveRegex.lastIndex };
-  }
-  return null;
-};
-
-const readTurn = (input: string, index: number): { turn: Turn; newIndex: number } | null => {
-  const turnNumberResult = readTurnNumber(input, index);
-  if (!turnNumberResult) {
-    return null;
-  }
-  let { turn: turnNumber, newIndex } = turnNumberResult;
-
-  const whiteMoveResult = readMove(input, newIndex);
-  if (!whiteMoveResult) {
-    return null;
-  }
-  const whiteMove = whiteMoveResult.move;
-  newIndex = whiteMoveResult.newIndex;
-
-  const blackMoveResult = readMove(input, newIndex);
-  let blackMove: string | undefined = undefined;
-  if (blackMoveResult) {
-    blackMove = blackMoveResult.move;
-    newIndex = blackMoveResult.newIndex;
-  }
-
-  return {
-    turn: { turnNumber, whiteMove, blackMove },
-    newIndex,
-  };
-};
-
-export const parsePgnToTurns = (pgn: string): Turn[] => {
-  const turns: Turn[] = [];
-  let index = 0;
-
-  while (index < pgn.length) {
-    const turnResult = readTurn(pgn, index);
-    if (!turnResult) {
-      break;
+  let result = '';
+  let moveNumber = 0;
+  for (const move of tree.moves) {
+    if (move.moveNumber !== null && move.moveNumber > moveNumber) {
+      moveNumber = move.moveNumber;
+      result += `${moveNumber}. `;
     }
-    turns.push(turnResult.turn);
-    index = turnResult.newIndex;
+
+    result += `${move.notation.notation} `;
   }
 
-  return turns;
+  return result.trim();
+};
+
+export const postOnLichess = async (game: ChessGame): Promise<string | null> => {
+  if (game.pgn === null) {
+    return null;
+  }
+
+  const date = new Date(game.datetime);
+  const formattedDate = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+  const formattedTime = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  const standardTermination = getTerminationDescription(game.termination).standard ?? game.termination;
+
+  let lichessPgn = '[Event "Newton Chess Club Casual OTB"]\n';
+  lichessPgn += `[Site "Newton Technologies"]\n`;
+  lichessPgn += `[Date "${formattedDate}"]\n`;
+  lichessPgn += `[Time "${formattedTime}"]\n`;
+  lichessPgn += `[White "${game.white.fullName}"]\n`;
+  lichessPgn += `[Black "${game.black.fullName}"]\n`;
+  lichessPgn += `[WhiteElo "${game.white.rating}"]\n`;
+  lichessPgn += `[BlackElo "${game.black.rating}"]\n`;
+  lichessPgn += `[TimeControl "${game.timeControl}"]\n`;
+  lichessPgn += `[Result "${game.result}"]\n`;
+  lichessPgn += `[Termination "${standardTermination}"]\n`;
+  lichessPgn += `[Mode "OTB"]\n\n`;
+
+  lichessPgn += purifyPgn(game.pgn);
+
+  console.log('Posting PGN to Lichess:\n', lichessPgn);
+
+  const response = await fetch('https://lichess.org/api/import', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json',
+    },
+    body: new URLSearchParams({ pgn: lichessPgn }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to post PGN to Lichess: ${response.statusText}`);
+  }
+
+  const data = await response.json() as any;
+  console.log('Lichess response:', data);
+  game.url = data.url;
+  return data.url;
 };

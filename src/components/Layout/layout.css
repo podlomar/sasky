@@ -36,6 +36,8 @@ body {
   color: var(--text-primary);
   line-height: 1.5;
   min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   background-image: url('./img/checker-bg.svg');
   background-size: 200px 200px;
   background-repeat: repeat;

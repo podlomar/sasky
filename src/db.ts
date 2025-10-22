@@ -3,6 +3,85 @@ import path from 'node:path';
 import { nanoid } from 'nanoid';
 import { calculateEloRating } from './elo.js';
 
+const gameResults = ['1-0', '0-1', '1/2-1/2'] as const;
+
+export type GameResult = typeof gameResults[number];
+
+const terminations = {
+  "checkmate": {
+    name: "Mat",
+    description: "Hra skončila matem.",
+    standard: 'normal',
+  },
+  "resignation": {
+    name: "Rezignace",
+    description: "Rezignace jednoho z hráčů.",
+    standard: 'normal',
+  },
+  "time forfeit": {
+    name: "Vypršení času",
+    description: "Hráč prohrál na čas.",
+  },
+  "abandoned": {
+    name: "Opustěná hra",
+    description: "Hra byla opuštěna.",
+  },
+  "stalemate": {
+    name: "Pat",
+    description: "Hra skončila patem.",
+    standard: 'normal',
+  },
+  "threefold repetition": {
+    name: "Trojí opakování",
+    description: "Hra skončila remízou kvůli trojímu opakování pozice.",
+    standard: 'normal',
+  },
+  "50 move rule": {
+    name: "Pravidlo 50 tahů",
+    description: "Hra skončila remízou podle pravidla 50 tahů.",
+    standard: 'normal',
+  },
+  "adjudication": {
+    name: "Arbitráž",
+    description: "Hra byla ukončena arbitráží.",
+  },
+  "death": {
+    name: "Úmrtí",
+    description: "Hra skončila kvůli úmrtí jednoho z hráčů.",
+  },
+  "emergency": {
+    name: "Nouzová situace",
+    description: "Hra byla ukončena kvůli nouzové situaci.",
+  },
+  "rules infraction": {
+    name: "Porušení pravidel",
+    description: "Administrativní prohra kvůli nedodržení pravidel šachu nebo pravidel akce ze strany prohrávajícího hráče.",
+  },
+  "unknown": {
+    name: "Neznámé",
+    description: "Důvod ukončení hry není znám.",
+  }
+} as const;
+
+export type Termination = keyof typeof terminations;
+
+export type TerminationDescription = {
+  name: string;
+  description: string;
+  standard?: 'normal';
+};
+
+export const getTerminationDescription = (termination: Termination): TerminationDescription => {
+  return terminations[termination];
+};
+
+export const getTerminationOptions = (): { value: Termination; label: string }[] => {
+  return Object.entries(terminations).map(([key, value]) => ({
+    value: key as Termination,
+    label: value.name,
+  }));
+};
+
 export interface GameRating {
   gameId: string;
   newRating: number;
@@ -10,6 +89,7 @@ export interface GameRating {
 
 export interface GamePlayer {
   name: string;
+  fullName: string;
   rating: number;
 }
 
@@ -24,15 +104,14 @@ export interface RatingChange {
 
 export interface ChessGame {
   id: string;
-  date: string;
-  time: string;
+  datetime: string;
   timeControl: string;
   url: string | null;
   description: string | null;
   white: GamePlayer;
   black: GamePlayer;
-  result: string;
-  endingType: string;
+  result: GameResult;
+  termination: Termination;
   ratingChange: RatingChange;
   pgn: string | null;
 }
@@ -58,8 +137,8 @@ export const savePlayers = async (players: Player[]): Promise<void> => {
 };
 
 const compareByDateAndTime = (a: ChessGame, b: ChessGame): number => {
-  const dateA = new Date(`${a.date}T${a.time}`);
-  const dateB = new Date(`${b.date}T${b.time}`);
+  const dateA = new Date(`${a.datetime}`);
+  const dateB = new Date(`${b.datetime}`);
   return dateB.getTime() - dateA.getTime();
 };
 
@@ -67,7 +146,7 @@ const sortGamesByDateAndTime = (games: ChessGame[]): ChessGame[] => {
   return games.sort(compareByDateAndTime);
 };
 
-const getPlayerByName = (players: Player[], name: string): Player | null => {
+export const getPlayerByName = (players: Player[], name: string): Player | null => {
   const player = players.find(player => player.name === name);
   return player ?? null;
 };
@@ -158,13 +237,13 @@ export const loadPlayers = async (): Promise<Player[]> => {
   }
 };
 
-export const saveGame = async (game: Omit<ChessGame, 'id'>): Promise<ChessGame> => {
+export const saveGame = async (game: ChessGame): Promise<ChessGame> => {
   try {
     const games = await loadGames();
     const players = await loadPlayers();
 
     const newId = nanoid(8);
-    const newGame: ChessGame = { id: newId, ...game };
+    const newGame: ChessGame = { ...game, id: newId };
 
     games.push(newGame);
 

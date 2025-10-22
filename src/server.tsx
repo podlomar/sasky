@@ -4,8 +4,8 @@ import { prerenderToNodeStream } from 'react-dom/static';
 import { HomePage } from './pages/HomePage/index.js';
 import { EnterGamePage } from './pages/EnterGamePage/index.js';
 import { PlayersPage } from './pages/PlayersPage/index.js';
-import { loadGames, loadPlayers, saveGame, recalculateRatings } from './db.js';
-import { processPgn } from './pgn.js';
+import { loadGames, loadPlayers, saveGame, recalculateRatings, getPlayerByName, ChessGame } from './db.js';
+import { purifyPgn, postOnLichess } from './pgn.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,7 +40,9 @@ hxg5 29.b3 Ke6 30.a3 Kd6 31.axb4 cxb4 32.Ra5 Nd5 33.f3 Bc8 34.Kf2 Bf5
 Nf2 42.g4 Bd3 43.Re6 1/2-1/2
 `;
 
-// console.log(processPgn(pgn));
+const purifiedPgn = purifyPgn(pgn);
+// const url = await postOnLichess(purifiedPgn);
+// console.log(`Game posted to Lichess: ${url}`);
 
 app.get('/', async (req: Request, res: Response) => {
   const games = await loadGames();
@@ -60,47 +62,55 @@ app.get('/players', async (req: Request, res: Response) => {
 app.post('/enter', async (req: Request, res: Response) => {
   try {
     const {
-      date,
-      time,
+      datetime,
       timeControl,
       description,
       whitePlayer,
       blackPlayer,
       result,
-      endingType,
+      termination,
       pgn
     } = req.body;
 
     // Get current player ratings from the players data
     const players = await loadPlayers();
-    const whitePlayerData = players.find(p => p.name === whitePlayer);
-    const blackPlayerData = players.find(p => p.name === blackPlayer);
+    const whitePlayerData = getPlayerByName(players, whitePlayer);
+    const blackPlayerData = getPlayerByName(players, blackPlayer);
+
+    if (whitePlayerData === null || blackPlayerData === null) {
+      throw new Error(`Player not found: ${whitePlayer} or ${blackPlayer}`);
+    }
 
     // Process the PGN
-    const processedPgn = pgn === null ? null : processPgn(pgn);
+    const processedPgn = pgn === null ? null : purifyPgn(pgn);
 
-    const newGame = await saveGame({
-      date,
-      time,
+    const newGame: ChessGame = {
+      id: '',
+      datetime,
       url: null,
       timeControl,
       description: description ?? null,
       white: {
-        name: whitePlayer,
+        name: whitePlayerData.name,
+        fullName: whitePlayerData.fullName,
         rating: whitePlayerData?.rating || 1500, // Use actual player rating or default
       },
       black: {
-        name: blackPlayer,
+        name: blackPlayerData.name,
+        fullName: blackPlayerData.fullName,
         rating: blackPlayerData?.rating || 1500, // Use actual player rating or default
       },
       result,
-      endingType,
+      termination,
       ratingChange: {
         white: 0, // Default rating change, will be computed later
         black: 0  // Default rating change, will be computed later
       },
       pgn: processedPgn
-    });
+    };
+
+    await postOnLichess(newGame);
+    saveGame(newGame);
 
     // Redirect to home page after successful submission
     res.redirect('/');

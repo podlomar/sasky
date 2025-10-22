@@ -1,13 +1,17 @@
 import { JSX } from "react";
 import { Layout } from "../../components/Layout/index.js";
 import { PageHeader } from "../../components/PageHeader/index.js";
-import { Player } from "../../db.js";
+import { getTerminationOptions, Player } from "../../db.js";
 
 interface Props {
   players: Player[];
 }
 
 export const EnterGamePage = ({ players }: Props): JSX.Element => {
+  const terminationOptions = getTerminationOptions();
+
+  const nowDate = new Date().toISOString();
+
   return (
     <Layout title="Šášky | Zadat novou hru">
       <div className="container">
@@ -23,34 +27,25 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="date">Datum</label>
+                  <label htmlFor="date">Datum a čas</label>
                   <input
-                    type="date"
-                    id="date"
-                    name="date"
+                    type="datetime-local"
+                    id="datetime"
+                    name="datetime"
+                    defaultValue={nowDate}
                     required
                     className="form-input"
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="time">Čas</label>
-                  <input
-                    type="time"
-                    id="time"
-                    name="time"
-                    required
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="timeControl">Hodiny</label>
+                  <label htmlFor="timeControl">Časový limit</label>
                   <input
                     type="text"
                     id="timeControl"
                     name="timeControl"
-                    placeholder="např. 10+5, 5+3, Free"
+                    defaultValue="8+10"
+                    placeholder="např. 8+10, 5+0, Free"
                     required
                     className="form-input"
                   />
@@ -125,19 +120,14 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="endingType">Jak hra skončila</label>
-                  <select id="endingType" name="endingType" required className="form-select">
-                    <option value="">Vyberte typ konce</option>
-                    <option value="checkmate">Mat</option>
-                    <option value="resignation">Rezignace</option>
-                    <option value="stalemate">Pat</option>
-                    <option value="time-forfeit">Vypršení času</option>
-                    <option value="abandonment">Opuštění partie</option>
-                    <option value="insufficient-material">Nedostatek materiálu</option>
-                    <option value="threefold-repetition">Trojí opakování</option>
-                    <option value="50-move-rule">Pravidlo 50 tahů</option>
-                    <option value="mutual-agreement">Vzájemná dohoda</option>
-                    <option value="unknown">Neznámý</option>
+                  <label htmlFor="termination">Jak hra skončila</label>
+                  <select id="termination" name="termination" required className="form-select">
+                    <option value="">Vyberte typ ukončení</option>
+                    {terminationOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

@@ -3,5 +3,5 @@
     "dist"
   ],
   "ext": "js,css",
-  "exec": "cd dist && node server.js"
+  "exec": "cd dist && PORT=5000 node server.js"
 }
