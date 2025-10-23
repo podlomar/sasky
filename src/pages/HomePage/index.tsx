@@ -18,7 +18,6 @@ export const HomePage = ({ totalGames, games }: Props): JSX.Element => {
 
         <div className={styles.gamesTable}>
           <div className={styles.gamesHeader}>
-            <div className="col-players">Hráči</div>
             <div className="col-result">Výsledek</div>
             <div className="col-date">Datum</div>
             <div className="col-description">Popis</div>

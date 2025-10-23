@@ -10,14 +10,13 @@
 
 .gamesHeader {
   display: grid;
-  grid-template-columns: 3fr 0.8fr 1fr 2fr 1.2fr;
+  grid-template-columns: 3fr 1fr 2fr 1fr;
   gap: 1rem;
   padding: 1rem 1.5rem;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-primary);
   font-weight: 600;
   color: var(--text-secondary);
-  font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
