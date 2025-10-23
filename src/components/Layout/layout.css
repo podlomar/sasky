@@ -44,15 +44,3 @@ body {
   background-repeat: repeat;
   background-attachment: fixed;
 }
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 0 0.5rem;
-  }
-}

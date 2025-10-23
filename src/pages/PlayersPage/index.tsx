@@ -1,7 +1,9 @@
 import { JSX } from "react";
 import { Layout } from "../../components/Layout/index.js";
+import { Container } from "../../components/Container/index.js";
 import { PageHeader } from "../../components/PageHeader/index.js";
 import { Player } from "../../db.js";
+import styles from "./styles.module.css";
 
 interface Props {
   players: Player[];
@@ -10,40 +12,40 @@ interface Props {
 export const PlayersPage = ({ players }: Props): JSX.Element => {
   return (
     <Layout title="Šášky | Hráči">
-      <div className="container">
+      <Container>
         <PageHeader
           title="Hráči"
           subtitle="ELO hodnocení a statistiky"
         />
 
-        <div className="players-grid">
+        <div className={styles.players}>
           {players.map((player) => (
-            <div className="player-card" key={player.name}>
-              <div className="player-header">
-                <h2 className="player-name">{player.name}</h2>
-                <div className="current-rating">
-                  <span className="rating-label">Aktuální hodnocení</span>
-                  <span className="rating-value">{player.rating}</span>
+            <div className={styles.playerCard} key={player.name}>
+              <div className={styles.playerHeader}>
+                <h2 className={styles.playerName}>{player.name}</h2>
+                <div className={styles.currentRating}>
+                  <span className={styles.ratingLabel}>Aktuální hodnocení</span>
+                  <span className={styles.ratingValue}>{player.rating}</span>
                 </div>
               </div>
 
-              <div className="player-stats">
-                <div className="stat-item">
-                  <span className="stat-label">Počet her</span>
-                  <span className="stat-value">{player.games.length}</span>
+              <div className={styles.playerStats}>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>Počet her</span>
+                  <span className={styles.statValue}>{player.games.length}</span>
                 </div>
-                <div className="stat-item">
-                  <span className="stat-label">Změna hodnocení</span>
-                  <span className={`stat-value ${player.rating >= 800 ? 'positive' : 'negative'}`}>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>Změna hodnocení</span>
+                  <span className={`${styles.statValue} ${player.rating >= 800 ? styles.positive : styles.negative}`}>
                     {player.rating >= 800 ? '+' : ''}{player.rating - 800}
                   </span>
                 </div>
               </div>
 
-              <div className="chart-container">
+              <div className={styles.chartContainer}>
                 <canvas
                   id={`chart-${player.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="rating-chart"
+                  className={styles.ratingChart}
                   width="400"
                   height="200"
                 ></canvas>
@@ -131,7 +133,7 @@ export const PlayersPage = ({ players }: Props): JSX.Element => {
             });
           `
         }} />
-      </div>
+      </Container>
     </Layout>
   );
 };
