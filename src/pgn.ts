@@ -19,7 +19,7 @@ export const purifyPgn = (pgn: string): string => {
 };
 
 export const postOnLichess = async (game: ChessGame): Promise<string | null> => {
-  if (game.pgn === null) {
+  if (game.pgn === null || game.pgn.trim() === '') {
     return null;
   }
 

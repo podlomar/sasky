@@ -75,6 +75,8 @@ app.post('/enter', async (req: Request, res: Response) => {
       pgn
     } = req.body;
 
+    console.log('Received new game submission:', req.body);
+
     // Get current player ratings from the players data
     const players = await loadPlayers();
     const whitePlayerData = getPlayerByName(players, whitePlayer);
@@ -85,7 +87,7 @@ app.post('/enter', async (req: Request, res: Response) => {
     }
 
     // Process the PGN
-    const processedPgn = pgn === null ? null : purifyPgn(pgn);
+    const processedPgn = pgn === null || pgn.trim() === '' ? null : purifyPgn(pgn);
 
     const newGame: ChessGame = {
       id: '',
