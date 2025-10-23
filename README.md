@@ -1,163 +1,174 @@
-# IonCore
+# Sasky Chess Application - Server Setup Guide
 
-A pure Server-Side Rendering (SSR) React web application template built with modern tools and best practices.
+This guide provides step-by-step instructions for setting up the Sasky chess application on an Ubuntu server with nginx and systemd. The application is deployed by cloning directly from the git repository and building on the server.
 
-## Features
+## Prerequisites
 
-- ⚡ **Pure SSR**: Server-side rendered React components for optimal performance and SEO
-- 🚀 **React 19**: Built with the latest React version using JSX runtime
-- 📦 **ESBuild**: Fast bundling and TypeScript compilation
-- 🔄 **Hot Reload**: Development server with automatic rebuilds using Gulp and Nodemon
-- 📁 **CSS Modules**: Scoped CSS with hash-based class names
-- 🎯 **TypeScript**: Full TypeScript support with type safety
-- 🌐 **Express**: Lightweight web server framework
-- 📱 **Static Assets**: Optimized handling of static files and images
+- Ubuntu Server (24.04 or later)
+- Node.js v22.21.0 (LTS) installed
+- nginx installed
+- sudo/root access
+- Domain: `sasky.podlomar.me` pointing to your server
 
-## Technology Stack
+## 1. Install Dependencies
 
-- **Frontend**: React 19, TypeScript
-- **Backend**: Express.js, Node.js
-- **Build Tools**: ESBuild, Gulp
-- **Development**: Nodemon for auto-restart
-- **Styling**: CSS Modules with ESBuild plugin
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (version 16 or higher)
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd ioncore
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install required packages
+sudo apt install -y nginx nodejs npm git
+
+# Install PM2 for process management (optional but recommended)
+sudo npm install -g pm2
 ```
 
-2. Install dependencies:
+## 2. Clone and Build Application
+
 ```bash
+# Create data directory
+sudo mkdir -p /var/www/sasky.podlomar.me/data
+
+# Clone the repository
+cd /var/www
+sudo git clone https://github.com/podlomar/sasky.git sasky.podlomar.me
+
+# Set ownership
+sudo chown -R www-data:www-data /var/www/sasky.podlomar.me
+
+# Switch to www-data user for building
+sudo -u www-data bash
+
+# Install dependencies and build
+cd /var/www/sasky.podlomar.me
 npm install
-```
-
-### Development
-
-Start the development server with hot reload:
-
-```bash
-npm run dev
-```
-
-This command will:
-- Build the TypeScript files using Gulp and ESBuild
-- Watch for file changes
-- Automatically restart the server when changes are detected
-- Server runs on `http://localhost:3000` (or the port specified in PORT environment variable)
-
-Start the server:
-
-```bash
-npm start
-```
-
-### Production Build
-
-Build the application for production:
-
-```bash
 npm run build
+
+# Exit back to your user
+exit
 ```
 
-## How It Works
+## 3. Update Application (for future deployments)
 
-### Server-Side Rendering
+To update the application with the latest code:
 
-IonCore uses React's `prerenderToNodeStream` to render React components on the server:
+```bash
+# Switch to application directory
+cd /var/www/sasky.podlomar.me
 
-```tsx
-const render = async (component: JSX.Element, res: express.Response) => {
-  const { prelude } = await prerenderToNodeStream(component);
-  prelude.pipe(res);
-};
+# Stop the service
+sudo systemctl stop sasky
+
+# Pull latest changes
+sudo -u www-data git pull origin master
+
+# Switch to www-data user for building
+sudo -u www-data bash
+
+# Install any new dependencies and rebuild
+npm install
+npm run build
+
+# Exit back to your user
+exit
+
+# Restart the service
+sudo systemctl start sasky
 ```
 
-### Build Process
+## 4. Create Systemd Service
 
-The build process uses ESBuild with Gulp for:
+Create the service file:
 
-- **TypeScript Compilation**: Converts TypeScript/TSX to JavaScript
-- **CSS Modules**: Processes CSS with scoped class names
-- **Asset Optimization**: Handles images and static files
-- **Bundle Creation**: Creates optimized bundles for production
-
-### Development Workflow
-
-1. **File Watching**: Gulp watches source files for changes
-2. **Automatic Rebuild**: ESBuild recompiles changed files
-3. **Server Restart**: Nodemon restarts the server when dist files change
-4. **Hot Development**: Changes are reflected immediately in the browser
-
-## Configuration
-
-### Environment Variables
-
-- `PORT`: Server port (default: 3000)
-
-### Build Configuration
-
-Customize the build process by modifying:
-
-- `gulpfile.js`: Build tasks and ESBuild configuration
-- `tsconfig.json`: TypeScript compiler options
-- `nodemon.json`: Development server settings
-
-## Adding New Pages
-
-1. Create a new folder in `src/pages/`
-2. Add your React component with TypeScript
-3. Import and use in `server.tsx`:
-
-```tsx
-import { NewPage } from './pages/NewPage/index.js';
-
-app.get('/new-page', (req: Request, res: Response) => {
-  render(<NewPage />, res);
-});
+```bash
+sudo nano /etc/systemd/system/sasky.service
 ```
 
-## CSS Modules
+Add the following content from file `sasky.service`. Then enable and start the service:
 
-IonCore supports CSS Modules out of the box. Create `.module.css` files and import them:
+```bash
+# Reload systemd daemon
+sudo systemctl daemon-reload
 
-```tsx
-import styles from './HomePage.module.css';
+# Enable service to start on boot
+sudo systemctl enable sasky
 
-export const HomePage = () => {
-  return <div className={styles.container}>Content</div>;
-};
+# Start the service
+sudo systemctl start sasky
+
+# Check status
+sudo systemctl status sasky
 ```
 
-## Static Assets
+## 5. Configure Nginx
 
-- Place static files in the `static/` directory
-- Images go in the `img/` directory
-- Both are served by Express automatically
+### Create the nginx site configuration:
 
-## Scripts
+```bash
+sudo nano /etc/nginx/sites-available/sasky.podlomar.me
+```
 
-- `npm run dev`: Start development server with watch mode
-- `npm run build`: Build for production
-- `npm start`: Start production server
+Add the content of `nginx.conf`:
 
-## License
+### Enable the site:
 
-MIT License - see LICENSE file for details
+```bash
+# Create symbolic link to enable the site
+sudo ln -s /etc/nginx/sites-available/sasky.podlomar.me /etc/nginx/sites-enabled/
 
-## Author
+# Remove default site if it exists
+sudo rm -f /etc/nginx/sites-enabled/default
 
-Martin Podloucký (podlouckymartin@gmail.com)
+# Test nginx configuration
+sudo nginx -t
 
----
+# Reload nginx
+sudo systemctl reload nginx
+```
 
-IonCore provides a solid foundation for building fast, SEO-friendly React applications with server-side rendering. Perfect for projects that need optimal performance and search engine optimization out of the box.
+## 6. Configure Firewall
+
+```bash
+# Allow SSH, HTTP, and HTTPS
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+
+# Enable firewall
+sudo ufw --force enable
+```
+
+## 7. Set Up SSL with Let's Encrypt (Recommended)
+
+```bash
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Obtain SSL certificate
+sudo certbot --nginx -d sasky.podlomar.me
+
+# Test automatic renewal
+sudo certbot renew --dry-run
+```
+
+## 8. Verify Installation
+
+### Check that everything is running:
+
+```bash
+# Check service status
+sudo systemctl status sasky
+
+# Check nginx status
+sudo systemctl status nginx
+
+# Check if port 9000 is listening
+sudo netstat -tlnp | grep :9000
+
+# Check logs
+sudo journalctl -u sasky -f
+```
+
+### Test the application:
+
+Visit `http://sasky.podlomar.me` (or `https://sasky.podlomar.me` if SSL is configured) Your Sasky chess application should now be running! 🎉
