@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { Layout } from "../../components/Layout/index.js";
 import { Container } from "../../components/Container/index.js";
 import { PageHeader } from "../../components/PageHeader/index.js";
+import { Panel } from "../../components/Panel/index.js";
 import { Player } from "../../db.js";
 import styles from "./styles.module.css";
 
@@ -30,16 +31,16 @@ export const PlayersPage = ({ players }: Props): JSX.Element => {
               </div>
 
               <div className={styles.playerStats}>
-                <div className={styles.statItem}>
+                <Panel className={styles.statItem}>
                   <span className={styles.statLabel}>Počet her</span>
                   <span className={styles.statValue}>{player.games.length}</span>
-                </div>
-                <div className={styles.statItem}>
+                </Panel>
+                <Panel className={styles.statItem}>
                   <span className={styles.statLabel}>Změna hodnocení</span>
                   <span className={`${styles.statValue} ${player.rating >= 800 ? styles.positive : styles.negative}`}>
                     {player.rating >= 800 ? '+' : ''}{player.rating - 800}
                   </span>
-                </div>
+                </Panel>
               </div>
 
               <div className={styles.chartContainer}>

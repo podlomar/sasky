@@ -6,6 +6,7 @@ import { PageHeader } from "../../components/PageHeader/index.js";
 import { Button } from "../../components/Button/index.js";
 import { getTerminationOptions, Player } from "../../db.js";
 import styles from "./styles.module.css";
+import { Panel } from "../../components/Panel/index.js";
 
 interface Props {
   players: Player[];
@@ -70,45 +71,43 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
               <h2>Hráči</h2>
 
               <div className={styles.playersSection}>
-                <div className={styles.playerSelectionSimple}>
-                  <div className={clsx(styles.playerGroup, styles.whitePlayerGroup)}>
-                    <h3>
-                      <span className={styles.playerColorLarge}>♔</span>
-                      Bílý hráč
-                    </h3>
-                    <div className={styles.formGroup}>
-                      <label htmlFor="whitePlayer">Hráč</label>
-                      <select id="whitePlayer" name="whitePlayer" required className={styles.formSelect}>
-                        <option value="">Vyberte bílého hráče</option>
-                        {players.map((player) => (
-                          <option key={player.name} value={player.name}>
-                            {player.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                <Panel className={clsx(styles.playerGroup, styles.whitePlayerGroup)}>
+                  <h3>
+                    <span className={styles.playerColorLarge}>♔</span>
+                    Bílý hráč
+                  </h3>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="whitePlayer">Hráč</label>
+                    <select id="whitePlayer" name="whitePlayer" required className={styles.formSelect}>
+                      <option value="">Vyberte bílého hráče</option>
+                      {players.map((player) => (
+                        <option key={player.name} value={player.name}>
+                          {player.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+                </Panel>
 
-                  <div className={styles.vsSeparator}>VS</div>
+                <div className={styles.vsSeparator}>VS</div>
 
-                  <div className={clsx(styles.playerGroup, styles.blackPlayerGroup)}>
-                    <h3>
-                      <span className={styles.playerColorLarge}>♚</span>
-                      Černý hráč
-                    </h3>
-                    <div className={styles.formGroup}>
-                      <label htmlFor="blackPlayer">Hráč</label>
-                      <select id="blackPlayer" name="blackPlayer" required className={styles.formSelect}>
-                        <option value="">Vyberte černého hráče</option>
-                        {players.map((player) => (
-                          <option key={player.name} value={player.name}>
-                            {player.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                <Panel className={clsx(styles.playerGroup, styles.blackPlayerGroup)}>
+                  <h3>
+                    <span className={styles.playerColorLarge}>♚</span>
+                    Černý hráč
+                  </h3>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="blackPlayer">Hráč</label>
+                    <select id="blackPlayer" name="blackPlayer" required className={styles.formSelect}>
+                      <option value="">Vyberte černého hráče</option>
+                      {players.map((player) => (
+                        <option key={player.name} value={player.name}>
+                          {player.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
+                </Panel>
               </div>
 
               <div className={styles.formRow}>

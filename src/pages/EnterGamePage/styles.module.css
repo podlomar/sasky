@@ -85,27 +85,14 @@
 }
 
 .playersSection {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 2rem;
+  align-items: start;
   margin: 1.5rem 0;
 }
 
-.playerSelection {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 2rem;
-  align-items: start;
-}
-
-.playerSelectionSimple {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 2rem;
-  align-items: start;
-}
-
 .playerGroup {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  border-radius: 8px;
   padding: 1.5rem;
 }
 
