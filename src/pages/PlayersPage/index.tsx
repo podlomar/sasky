@@ -83,11 +83,8 @@ export const PlayersPage = ({ players }: Props): JSX.Element => {
                       borderWidth: 2,
                       fill: true,
                       tension: 0.2,
-                      pointBackgroundColor: '#58a6ff',
-                      pointBorderColor: '#ffffff',
-                      pointBorderWidth: 2,
-                      pointRadius: 4,
-                      pointHoverRadius: 6
+                      pointRadius: 0,
+                      pointHoverRadius: 0
                     }]
                   },
                   options: {
@@ -97,23 +94,9 @@ export const PlayersPage = ({ players }: Props): JSX.Element => {
                       legend: {
                         display: false
                       },
-                      tooltip: {
-                        backgroundColor: 'rgba(13, 17, 23, 0.9)',
-                        titleColor: '#f0f6fc',
-                        bodyColor: '#f0f6fc',
-                        borderColor: '#30363d',
-                        borderWidth: 1
-                      }
                     },
                     scales: {
-                      x: {
-                        grid: {
-                          color: '#30363d'
-                        },
-                        ticks: {
-                          color: '#8b949e'
-                        }
-                      },
+                      x: { display: false },
                       y: {
                         grid: {
                           color: '#30363d'
@@ -123,10 +106,6 @@ export const PlayersPage = ({ players }: Props): JSX.Element => {
                         },
                         beginAtZero: false
                       }
-                    },
-                    interaction: {
-                      intersect: false,
-                      mode: 'index'
                     }
                   }
                 });
