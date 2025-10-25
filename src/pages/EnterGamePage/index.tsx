@@ -8,11 +8,23 @@ import { getTerminationOptions, Player } from "../../db.js";
 import styles from "./styles.module.css";
 import { Panel } from "../../components/Panel/index.js";
 
-interface Props {
-  players: Player[];
+interface FormValues {
+  datetime: string;
+  timeControl: string;
+  description: string;
+  whitePlayer: string;
+  blackPlayer: string;
+  result: string;
+  termination: string;
+  pgn: string;
 }
 
-export const EnterGamePage = ({ players }: Props): JSX.Element => {
+interface Props {
+  players: Player[];
+  values?: Partial<FormValues>;
+}
+
+export const EnterGamePage = ({ players, values = {} }: Props): JSX.Element => {
   const terminationOptions = getTerminationOptions();
   const nowDate = new Date().toISOString().slice(0, 16);
 
@@ -35,7 +47,7 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                   type="datetime-local"
                   id="datetime"
                   name="datetime"
-                  defaultValue={nowDate}
+                  defaultValue={values.datetime ?? nowDate}
                   required
                   className={styles.formInput}
                 />
@@ -47,7 +59,7 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                   type="text"
                   id="timeControl"
                   name="timeControl"
-                  defaultValue="8+10"
+                  defaultValue={values.timeControl ?? "8+10"}
                   placeholder="např. 8+10, 5+0, Free"
                   required
                   className={styles.formInput}
@@ -61,6 +73,7 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                 id="description"
                 name="description"
                 rows={3}
+                defaultValue={values.description ?? ""}
                 placeholder="Popište, co se v této hře stalo..."
                 className={clsx(styles.formInput, styles.formTextarea)}
               ></textarea>
@@ -80,7 +93,11 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                   <select id="whitePlayer" name="whitePlayer" required className={styles.formSelect}>
                     <option value="">Vyberte bílého hráče</option>
                     {players.map((player) => (
-                      <option key={player.name} value={player.name}>
+                      <option
+                        key={player.name}
+                        value={player.name}
+                        selected={player.name === values.whitePlayer}
+                      >
                         {player.name}
                       </option>
                     ))}
@@ -100,7 +117,11 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                   <select id="blackPlayer" name="blackPlayer" required className={styles.formSelect}>
                     <option value="">Vyberte černého hráče</option>
                     {players.map((player) => (
-                      <option key={player.name} value={player.name}>
+                      <option
+                        key={player.name}
+                        value={player.name}
+                        selected={player.name === values.blackPlayer}
+                      >
                         {player.name}
                       </option>
                     ))}
@@ -114,9 +135,9 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                 <label htmlFor="result">Výsledek hry</label>
                 <select id="result" name="result" required className={styles.formSelect}>
                   <option value="">Vyberte výsledek</option>
-                  <option value="1-0">1-0 (Bílý vyhrává)</option>
-                  <option value="0-1">0-1 (Černý vyhrává)</option>
-                  <option value="1/2-1/2">1/2-1/2 (Remíza)</option>
+                  <option value="1-0" selected={values.result === "1-0"}>1-0 (Bílý vyhrává)</option>
+                  <option value="0-1" selected={values.result === "0-1"}>0-1 (Černý vyhrává)</option>
+                  <option value="1/2-1/2" selected={values.result === "1/2-1/2"}>1/2-1/2 (Remíza)</option>
                 </select>
               </div>
 
@@ -125,7 +146,7 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
                 <select id="termination" name="termination" required className={styles.formSelect}>
                   <option value="">Vyberte typ ukončení</option>
                   {terminationOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
+                    <option key={option.value} value={option.value} selected={option.value === values.termination}>
                       {option.label}
                     </option>
                   ))}
@@ -141,6 +162,7 @@ export const EnterGamePage = ({ players }: Props): JSX.Element => {
               <textarea
                 id="pgn"
                 name="pgn"
+                defaultValue={values.pgn ?? ""}
                 rows={8}
                 placeholder="Vložte PGN notaci hry..."
                 className={clsx(styles.formInput, styles.formTextarea, styles.pgnTextarea)}
