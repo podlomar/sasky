@@ -94,6 +94,24 @@
   height: 100% !important;
 }
 
+/* Players page responsive */
+@media (max-width: 768px) {
+  .playerHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .currentRating {
+    align-items: flex-start;
+  }
+
+  .playerStats {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 @media (max-width: 480px) {
   .playerCard {
     padding: 1rem;

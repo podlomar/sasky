@@ -32,3 +32,9 @@
   margin-bottom: 0.5rem;
   color: var(--text-primary);
 }
+
+@media (max-width: 768px) {
+  .gamesHeader {
+    display: none;
+  }
+}

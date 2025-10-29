@@ -131,3 +131,24 @@
   padding-top: 1.5rem;
   border-top: 1px solid var(--border-primary);
 }
+
+@media (max-width: 768px) {
+  .gameForm {
+    padding: 1.5rem;
+  }
+
+  .vsSeparator {
+    margin: 0;
+    padding: 0.5rem 0;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .formActions {
+    flex-direction: column;
+  }
+
+
+}

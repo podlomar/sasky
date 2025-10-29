@@ -69,12 +69,19 @@ export const PlayersPage = ({ players }: Props): JSX.Element => {
                 
                 // Prepare data for the chart
                 const gameLabels = player.games.map((game, index) => 'Game ' + (index + 1));
-                const ratingData = [800, ...player.games.map(game => game.newRating)];
+                let ratingData = [800, ...player.games.map(game => game.newRating)];
+                let labels = ['Start', ...gameLabels];
+                
+                // If there's only one data point (just the start), add a dummy point to show a horizontal line
+                if (ratingData.length === 1) {
+                  ratingData.push(800);
+                  labels.push('');
+                }
                 
                 new Chart(ctx, {
                   type: 'line',
                   data: {
-                    labels: ['Start', ...gameLabels],
+                    labels: labels,
                     datasets: [{
                       label: 'ELO Rating',
                       data: ratingData,
