@@ -45,7 +45,7 @@
 }
 
 .danger {
-  background: var(--accent-danger);
+  background: var(--danger);
   color: white;
 }
 

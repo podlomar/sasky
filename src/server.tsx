@@ -79,6 +79,16 @@ app.post('/enter', async (req: Request, res: Response) => {
 
     // Get current player ratings from the players data
     const players = await loadPlayers();
+
+    if (whitePlayer === blackPlayer) {
+      render(<EnterGamePage
+        players={players}
+        values={req.body}
+        error="samePlayer"
+      />, res);
+      return;
+    }
+
     const whitePlayerData = getPlayerByName(players, whitePlayer);
     const blackPlayerData = getPlayerByName(players, blackPlayer);
 
@@ -87,7 +97,18 @@ app.post('/enter', async (req: Request, res: Response) => {
     }
 
     // Process the PGN
-    const processedPgn = pgn === null || pgn.trim() === '' ? null : purifyPgn(pgn);
+    const processedPgnResult = pgn === null || pgn.trim() === '' ? null : purifyPgn(pgn);
+
+    if (processedPgnResult !== null && processedPgnResult.isFail()) {
+      render(<EnterGamePage
+        players={players}
+        values={req.body}
+        error="invalidPgn"
+      />, res);
+      return;
+    }
+
+    const processedPgn = processedPgnResult === null ? null : processedPgnResult.get();
 
     const newGame: ChessGame = {
       id: '',
@@ -121,6 +142,7 @@ app.post('/enter', async (req: Request, res: Response) => {
     res.redirect('/');
   } catch (error) {
     console.error('Error adding game:', error);
+    console.log(typeof error);
     res.status(500).send('Error adding game. Please try again.');
   }
 });

@@ -1,21 +1,27 @@
+import { Result } from 'monadix/result';
 import { parseGame } from '@mliebelt/pgn-parser';
 import { ChessGame, getTerminationDescription, Player, Termination } from './db.js';
 
-export const purifyPgn = (pgn: string): string => {
-  const tree = parseGame(pgn);
+export const purifyPgn = (pgn: string): Result<string, string> => {
+  try {
+    const tree = parseGame(pgn);
 
-  let result = '';
-  let moveNumber = 0;
-  for (const move of tree.moves) {
-    if (move.moveNumber !== null && move.moveNumber > moveNumber) {
-      moveNumber = move.moveNumber;
-      result += `${moveNumber}. `;
+    let result = '';
+    let moveNumber = 0;
+    for (const move of tree.moves) {
+      if (move.moveNumber !== null && move.moveNumber > moveNumber) {
+        moveNumber = move.moveNumber;
+        result += `${moveNumber}. `;
+      }
+
+      result += `${move.notation.notation} `;
     }
 
-    result += `${move.notation.notation} `;
+    return Result.success(result.trim());
+  } catch (error) {
+    console.error('Error parsing PGN:', error);
+    return Result.fail('Invalid PGN format');
   }
-
-  return result.trim();
 };
 
 export const postOnLichess = async (game: ChessGame): Promise<string | null> => {

@@ -117,11 +117,6 @@
     flex-wrap: wrap;
   }
 
-  .colDate {
-    order: 3;
-    font-size: 0.75rem;
-  }
-
   .gameDatetime {
     flex-direction: row;
     gap: 0.5rem;
@@ -134,35 +129,5 @@
   .colActions {
     order: 5;
     justify-content: flex-start;
-  }
-
-  .playersInline {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.3rem;
-  }
-
-  .whitePlayer,
-  .blackPlayer {
-    justify-content: flex-start;
-  }
-
-  .vsInline {
-    align-self: center;
-    margin: 0.1rem 0;
-  }
-
-  .gameDescriptionInline {
-    font-size: 0.75rem;
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
-  }
-
-  .termination {
-    font-size: 0.6rem;
-  }
-
-  .gameTimeControl {
-    font-size: 0.65rem;
   }
 }

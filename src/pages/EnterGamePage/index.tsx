@@ -7,6 +7,7 @@ import { Button } from "../../components/Button/index.js";
 import { getTerminationOptions, Player } from "../../db.js";
 import styles from "./styles.module.css";
 import { Panel } from "../../components/Panel/index.js";
+import { Alert } from "../../components/Alert/index.js";
 
 interface FormValues {
   datetime: string;
@@ -19,12 +20,26 @@ interface FormValues {
   pgn: string;
 }
 
+export const errors = {
+  samePlayer: {
+    title: "Hráči jsou stejní",
+    message: "Bílý a černý hráč nemohou být stejná osoba.",
+  },
+  invalidPgn: {
+    title: "Neplatná PGN notace",
+    message: "Zadaná PGN notace není ve správném formátu.",
+  },
+} as const;
+
+export type ErrorCode = keyof typeof errors;
+
 interface Props {
   players: Player[];
   values?: Partial<FormValues>;
+  error?: ErrorCode;
 }
 
-export const EnterGamePage = ({ players, values = {} }: Props): JSX.Element => {
+export const EnterGamePage = ({ players, values = {}, error }: Props): JSX.Element => {
   const terminationOptions = getTerminationOptions();
   const nowDate = new Date().toISOString().slice(0, 16);
 
@@ -37,6 +52,13 @@ export const EnterGamePage = ({ players, values = {} }: Props): JSX.Element => {
         />
 
         <form action="/enter" method="POST" className={styles.gameForm}>
+          {error && (
+            <div className={styles.alertSection}>
+              <Alert variant="error" title={errors[error].title}>
+                {errors[error].message}
+              </Alert>
+            </div>
+          )}
           <div className={styles.formSection}>
             <h2>Informace o hře</h2>
 
