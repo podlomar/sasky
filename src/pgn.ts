@@ -1,6 +1,6 @@
 import { Result } from 'monadix/result';
 import { parseGame } from '@mliebelt/pgn-parser';
-import { ChessGame, getTerminationDescription, Player, Termination } from './db.js';
+import { ChessGame, getTerminationDescription } from './db.js';
 
 export const purifyPgn = (pgn: string): Result<string, string> => {
   try {
@@ -46,8 +46,7 @@ export const postOnLichess = async (game: ChessGame): Promise<string | null> => 
   lichessPgn += `[Result "${game.result}"]\n`;
   lichessPgn += `[Termination "${standardTermination}"]\n`;
   lichessPgn += `[Mode "OTB"]\n\n`;
-
-  lichessPgn += purifyPgn(game.pgn);
+  lichessPgn += game.pgn;
 
   console.log('Posting PGN to Lichess:\n', lichessPgn);
 
