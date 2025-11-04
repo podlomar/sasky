@@ -7,7 +7,7 @@ export const Footer = (): JSX.Element => {
   return (
     <footer className={styles.footer}>
       <Container>
-        <p>&copy; {new Date().getFullYear()} Šášky, verze {pkg.version}</p>
+        <p>&copy; {new Date().getFullYear()} Šášky, verze {pkg.version} by <a href="https://github.com/podlomar/sasky">Martin Podloucký</a></p>
       </Container>
     </footer>
   );
