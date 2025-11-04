@@ -1,4 +1,4 @@
-# Sasky Chess Application - Server Setup Guide
+# Šášky Chess Application - Server Setup Guide
 
 This guide provides step-by-step instructions for setting up the Sasky chess application on an Ubuntu server with nginx and systemd. The application is deployed by cloning directly from the git repository and building on the server.
 
@@ -8,7 +8,7 @@ This guide provides step-by-step instructions for setting up the Sasky chess app
 - Node.js v22.21.0 (LTS) installed
 - nginx installed
 - sudo/root access
-- Domain: `sasky.podlomar.me` pointing to your server
+- Domain: `sasky.podlomar.me` pointing to the server
 
 ## 1. Install Dependencies
 
