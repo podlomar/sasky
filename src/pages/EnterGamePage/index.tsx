@@ -1,5 +1,6 @@
 import { JSX } from "react";
 import clsx from "clsx";
+import { DateTime } from "luxon";
 import { Layout } from "../../components/Layout/index.js";
 import { Container } from "../../components/Container/index.js";
 import { PageHeader } from "../../components/PageHeader/index.js";
@@ -41,7 +42,8 @@ interface Props {
 
 export const EnterGamePage = ({ players, values = {}, error }: Props): JSX.Element => {
   const terminationOptions = getTerminationOptions();
-  const nowDate = new Date().toISOString().slice(0, 16);
+  const date = DateTime.now().setZone('Europe/Prague');
+  const nowDate = date.toFormat('yyyy-MM-dd\'T\'HH:mm');
 
   return (
     <Layout title="Šášky | Zadat novou hru">
