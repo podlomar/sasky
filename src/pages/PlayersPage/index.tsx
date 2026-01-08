@@ -3,14 +3,15 @@ import { Layout } from "../../components/Layout/index.js";
 import { Container } from "../../components/Container/index.js";
 import { PageHeader } from "../../components/PageHeader/index.js";
 import { Panel } from "../../components/Panel/index.js";
-import { Player } from "../../db.js";
+import { Player, ChessGame } from "../../db.js";
 import styles from "./styles.module.css";
 
 interface Props {
   players: Player[];
+  games: ChessGame[];
 }
 
-export const PlayersPage = ({ players }: Props): JSX.Element => {
+export const PlayersPage = ({ players, games }: Props): JSX.Element => {
   return (
     <Layout title="Šášky | Hráči">
       <Container>
@@ -60,24 +61,62 @@ export const PlayersPage = ({ players }: Props): JSX.Element => {
           __html: `
             document.addEventListener('DOMContentLoaded', function() {
               const players = ${JSON.stringify(players)};
-              
+              const games = ${JSON.stringify(games)};
+
+              // Sort games by datetime (oldest to newest)
+              const sortedGames = games.sort((a, b) => {
+                return new Date(a.datetime) - new Date(b.datetime);
+              });
+
+              // Create array of all game IDs in chronological order
+              const sortedGameIds = sortedGames.map(game => game.id);
+
+              // Find min and max ratings across all players to set a common Y-axis scale
+              let minRating = 800;
+              let maxRating = 800;
+              players.forEach(player => {
+                player.games.forEach(game => {
+                  minRating = Math.min(minRating, game.newRating);
+                  maxRating = Math.max(maxRating, game.newRating);
+                });
+              });
+
+              // Add some padding to the Y-axis
+              const yPadding = (maxRating - minRating) * 0.1 || 20;
+              const yMin = Math.floor(minRating - yPadding);
+              const yMax = Math.ceil(maxRating + yPadding);
+
               players.forEach(player => {
                 const chartId = 'chart-' + player.name.toLowerCase().replace(/\\s+/g, '-');
                 const ctx = document.getElementById(chartId);
-                
+
                 if (!ctx) return;
-                
-                // Prepare data for the chart
-                const gameLabels = player.games.map((game, index) => 'Game ' + (index + 1));
-                let ratingData = [800, ...player.games.map(game => game.newRating)];
-                let labels = ['Start', ...gameLabels];
-                
-                // If there's only one data point (just the start), add a dummy point to show a horizontal line
+
+                // Create a map of gameId to rating for this player
+                const playerGameRatings = new Map();
+                player.games.forEach(game => {
+                  playerGameRatings.set(game.gameId, game.newRating);
+                });
+
+                // Build data points for all games, maintaining rating when player didn't play
+                let currentRating = 800;
+                const ratingData = [800]; // Start at 800
+                const labels = ['Start'];
+
+                sortedGameIds.forEach((gameId, index) => {
+                  if (playerGameRatings.has(gameId)) {
+                    currentRating = playerGameRatings.get(gameId);
+                  }
+                  ratingData.push(currentRating);
+                  labels.push('Game ' + (index + 1));
+                });
+
+                // If there are no games at all, add a dummy point
                 if (ratingData.length === 1) {
                   ratingData.push(800);
                   labels.push('');
                 }
-                
+
                 new Chart(ctx, {
                   type: 'line',
                   data: {
@@ -111,6 +150,8 @@ export const PlayersPage = ({ players }: Props): JSX.Element => {
                         ticks: {
                           color: '#8b949e'
                         },
+                        min: yMin,
+                        max: yMax,
                         beginAtZero: false
                       }
                     }
