@@ -12,6 +12,8 @@ interface Props {
 }
 
 export const PlayersPage = ({ players, games }: Props): JSX.Element => {
+  const sortedPlayers = [...players].sort((a, b) => b.rating - a.rating);
+
   return (
     <Layout title="Šášky | Hráči">
       <Container>
@@ -21,7 +23,7 @@ export const PlayersPage = ({ players, games }: Props): JSX.Element => {
         />
 
         <div className={styles.players}>
-          {players.map((player) => (
+          {sortedPlayers.map((player) => (
             <div className={styles.playerCard} key={player.name}>
               <div className={styles.playerHeader}>
                 <h2 className={styles.playerName}>{player.name}</h2>
