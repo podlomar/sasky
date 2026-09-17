@@ -1,0 +1,70 @@
+---
+import Button from './Button.astro';
+import styles from './GameRow.module.css';
+import type { ChessGame, GameResult } from '../lib/db';
+import { getTerminationDescription } from '../lib/terminations';
+
+interface Props {
+  game: ChessGame;
+}
+
+const { game } = Astro.props;
+
+const resultMessages: Record<GameResult, string> = {
+  '1-0': 'Vyhrál bílý',
+  '0-1': 'Vyhrál černý',
+  '1/2-1/2': 'Remíza',
+};
+
+const formatRatingChange = (change: number): string | null => {
+  if (change === 0) {
+    return null;
+  }
+  return change > 0 ? `+${change}` : String(change);
+};
+
+const [date, time] = game.datetime.split('T');
+const hasDescription = game.description !== null && game.description.trim() !== '';
+---
+
+<div class={styles.gameRow}>
+  <div class={styles.colResult}>
+    <div class={styles.gameIcon}></div>
+    <div>
+      <div class={styles.playersLine}>
+        <span class={styles.whitePiece}>♔</span>
+        <span class={styles.playerName}>{game.white.name}</span>
+        <span class={styles.playerRating}>({game.white.rating})</span>
+        <span>{formatRatingChange(game.ratingChange.white)}</span>
+
+        <span class={styles.vs}>vs</span>
+        <span class={styles.blackPiece}>♚</span>
+        <span class={styles.playerName}>{game.black.name}</span>
+        <span class={styles.playerRating}>({game.black.rating})</span>
+        <span>{formatRatingChange(game.ratingChange.black)}</span>
+      </div>
+      <div class={styles.resultLine}>
+        <span class={styles.result}>{resultMessages[game.result]}</span>
+        <span class={styles.termination}>
+          ({getTerminationDescription(game.termination).name})
+        </span>
+        <span>⏱️ {game.timeControl}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class={styles.colDate}>
+    <p class={styles.gameDate}>{date}</p>
+    <p class={styles.gameTime}>{time}</p>
+  </div>
+
+  <div class={styles.colDescription}>
+    {hasDescription
+      ? game.description
+      : <em class={styles.noDescription}>Bez popisu</em>}
+  </div>
+
+  <div class={styles.colActions}>
+    {game.url && <Button href={game.url} variant="outline" target="_blank">Lichess</Button>}
+  </div>
+</div>

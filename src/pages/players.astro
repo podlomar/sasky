@@ -1,0 +1,129 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Container from '../components/Container.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Panel from '../components/Panel.astro';
+import RatingChart from '../components/RatingChart.astro';
+import { loadGames, loadPlayers, startingRating, type Player } from '../lib/db';
+import styles from '../styles/players.module.css';
+
+const players = await loadPlayers();
+const games = await loadGames();
+
+const chronologicalGameIds = [...games]
+  .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime())
+  .map((game) => game.id);
+
+const buildRatingSeries = (player: Player): number[] => {
+  const ratingByGameId = new Map(player.games.map((game) => [game.gameId, game.newRating]));
+  let current = startingRating;
+
+  const series = [startingRating, ...chronologicalGameIds.map((gameId) => {
+    current = ratingByGameId.get(gameId) ?? current;
+    return current;
+  })];
+
+  return series.length === 1 ? [startingRating, startingRating] : series;
+};
+
+const cards = players
+  .map((player) => ({ player, ratings: buildRatingSeries(player) }))
+  .sort((a, b) => b.player.rating - a.player.rating);
+
+const allRatings = cards.flatMap((card) => card.ratings);
+const minRating = allRatings.length === 0 ? startingRating : Math.min(...allRatings);
+const maxRating = allRatings.length === 0 ? startingRating : Math.max(...allRatings);
+const padding = (maxRating - minRating) * 0.1 || 20;
+const yMin = Math.floor(minRating - padding);
+const yMax = Math.ceil(maxRating + padding);
+---
+
+<Layout title="Šášky | Hráči">
+  <Container>
+    <PageHeader title="Hráči" subtitle="ELO hodnocení a statistiky" />
+
+    <div class={styles.players}>
+      {cards.map(({ player, ratings }) => (
+        <div class={styles.playerCard}>
+          <div class={styles.playerHeader}>
+            <h2 class={styles.playerName}>{player.name}</h2>
+            <div class={styles.currentRating}>
+              <span class={styles.ratingLabel}>Aktuální hodnocení</span>
+              <span class={styles.ratingValue}>{player.rating}</span>
+            </div>
+          </div>
+
+          <div class={styles.playerStats}>
+            <Panel class={styles.statItem}>
+              <span class={styles.statLabel}>Počet her</span>
+              <span class={styles.statValue}>{player.games.length}</span>
+            </Panel>
+            <Panel class={styles.statItem}>
+              <span class={styles.statLabel}>Změna hodnocení</span>
+              <span
+                class:list={[
+                  styles.statValue,
+                  player.rating >= startingRating ? styles.positive : styles.negative,
+                ]}
+              >
+                {player.rating >= startingRating ? '+' : ''}{player.rating - startingRating}
+              </span>
+            </Panel>
+          </div>
+
+          <div class={styles.chartContainer}>
+            <RatingChart
+              class={styles.ratingChart}
+              ratings={ratings}
+              min={yMin}
+              max={yMax}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  </Container>
+</Layout>
+
+<script>
+  import Chart from 'chart.js/auto';
+
+  const canvases = document.querySelectorAll<HTMLCanvasElement>('canvas[data-rating-chart]');
+
+  for (const canvas of canvases) {
+    const ratings = JSON.parse(canvas.dataset.ratings ?? '[]') as number[];
+
+    new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: ratings.map(() => ''),
+        datasets: [{
+          label: 'ELO Rating',
+          data: ratings,
+          borderColor: '#58a6ff',
+          backgroundColor: 'rgba(88, 166, 255, 0.1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.2,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { display: false },
+          y: {
+            grid: { color: '#30363d' },
+            ticks: { color: '#8b949e' },
+            min: Number(canvas.dataset.min),
+            max: Number(canvas.dataset.max),
+            beginAtZero: false,
+          },
+        },
+      },
+    });
+  }
+</script>

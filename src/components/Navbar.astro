@@ -1,0 +1,15 @@
+---
+import Container from './Container.astro';
+import styles from './Navbar.module.css';
+---
+
+<nav class={styles.navbar}>
+  <Container class={styles.navContainer}>
+    <a href="/" class={styles.navBrand}>Šášky</a>
+    <div class={styles.navLinks}>
+      <a href="/" class={styles.navLink}>Seznam her</a>
+      <a href="/players" class={styles.navLink}>Hráči</a>
+      <a href="/enter" class={styles.navLink}>Zadat hru</a>
+    </div>
+  </Container>
+</nav>

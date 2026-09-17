@@ -1,0 +1,15 @@
+---
+import styles from './PageHeader.module.css';
+
+interface Props {
+  title: string;
+  subtitle?: string;
+}
+
+const { title, subtitle } = Astro.props;
+---
+
+<header class={styles.pageHeader}>
+  <h1>{title}</h1>
+  {subtitle && <p class={styles.subtitle}>{subtitle}</p>}
+</header>

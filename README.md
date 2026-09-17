@@ -1,6 +1,18 @@
 # Šášky Chess Application - Server Setup Guide
 
-This guide provides step-by-step instructions for setting up the Sasky chess application on an Ubuntu server with nginx and systemd. The application is deployed by cloning directly from the git repository and building on the server.
+This guide provides step-by-step instructions for setting up the Sasky chess application on an Ubuntu server with nginx and systemd. The application is an [Astro](https://astro.build) app rendered on demand by the Node adapter, and is deployed by cloning directly from the git repository and building on the server.
+
+## Local development
+
+```bash
+npm install
+npm run dev      # dev server on http://localhost:5000
+npm run check    # type check
+npm run build    # production build into dist/
+npm start        # run the production build
+```
+
+Game and player data are read from JSON files in the directory given by `SASKY_DATA_DIR` (default `./data`). That directory must contain `games.json` and `players.json`; both are valid as an empty array `[]` on a fresh install.
 
 ## Prerequisites
 
@@ -18,20 +30,21 @@ sudo apt update && sudo apt upgrade -y
 
 # Install required packages
 sudo apt install -y nginx nodejs npm git
-
-# Install PM2 for process management (optional but recommended)
-sudo npm install -g pm2
 ```
 
 ## 2. Clone and Build Application
 
 ```bash
-# Create data directory
-sudo mkdir -p /var/www/sasky.podlomar.me/data
-
 # Clone the repository
 cd /var/www
 sudo git clone https://github.com/podlomar/sasky.git sasky.podlomar.me
+
+# Create data directory
+sudo mkdir -p /var/www/sasky.podlomar.me/data
+
+# Seed the data files if this is a fresh install
+echo '[]' | sudo tee /var/www/sasky.podlomar.me/data/games.json
+echo '[]' | sudo tee /var/www/sasky.podlomar.me/data/players.json
 
 # Set ownership
 sudo chown -R www-data:www-data /var/www/sasky.podlomar.me
@@ -47,6 +60,8 @@ npm run build
 # Exit back to your user
 exit
 ```
+
+The build produces `dist/server/entry.mjs`, a standalone server that also serves the client assets from `dist/client/`.
 
 ## 3. Update Application (for future deployments)
 
@@ -76,6 +91,8 @@ exit
 sudo systemctl start sasky
 ```
 
+Alternatively, `npm run deploy` builds locally and copies `dist/` plus the package manifests to the server over ssh, then restarts the service.
+
 ## 4. Create Systemd Service
 
 Create the service file:
@@ -84,7 +101,7 @@ Create the service file:
 sudo nano /etc/systemd/system/sasky.service
 ```
 
-Add the following content from file `sasky.service`. Then enable and start the service:
+Add the following content from file `sasky.service`. It runs the server on port 9000 and points `SASKY_DATA_DIR` at `/var/www/sasky.podlomar.me/data`. Then enable and start the service:
 
 ```bash
 # Reload systemd daemon
@@ -163,7 +180,7 @@ sudo systemctl status sasky
 sudo systemctl status nginx
 
 # Check if port 9000 is listening
-sudo netstat -tlnp | grep :9000
+sudo ss -tlnp | grep :9000
 
 # Check logs
 sudo journalctl -u sasky -f
@@ -171,4 +188,4 @@ sudo journalctl -u sasky -f
 
 ### Test the application:
 
-Visit `http://sasky.podlomar.me` (or `https://sasky.podlomar.me` if SSL is configured) Your Sasky chess application should now be running! 🎉
+Visit `http://sasky.podlomar.me` (or `https://sasky.podlomar.me` if SSL is configured) Your Sasky chess application should now be running!

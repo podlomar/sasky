@@ -1,0 +1,46 @@
+---
+import styles from './Button.module.css';
+
+interface Props {
+  id?: string;
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+  fullWidth?: boolean;
+  class?: string;
+  href?: string;
+  target?: string;
+}
+
+const {
+  id,
+  variant = 'primary',
+  size = 'md',
+  type = 'button',
+  disabled = false,
+  fullWidth = false,
+  class: className,
+  href,
+  target,
+} = Astro.props;
+
+const classes = [
+  styles.btn,
+  styles[variant],
+  styles[size],
+  disabled ? styles.disabled : null,
+  fullWidth ? styles.fullWidth : null,
+  className,
+];
+---
+
+{href === undefined ? (
+  <button id={id} type={type} class:list={classes} disabled={disabled}>
+    <slot />
+  </button>
+) : (
+  <a href={href} target={target} class:list={classes}>
+    <slot />
+  </a>
+)}

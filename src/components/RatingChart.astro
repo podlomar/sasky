@@ -1,0 +1,19 @@
+---
+interface Props {
+  ratings: number[];
+  min: number;
+  max: number;
+  class?: string;
+}
+
+const { ratings, min, max, class: className } = Astro.props;
+---
+
+<canvas
+  class={className}
+  width="400"
+  height="200"
+  data-rating-chart
+  data-ratings={JSON.stringify(ratings)}
+  data-min={min}
+  data-max={max}></canvas>

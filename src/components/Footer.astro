@@ -1,0 +1,14 @@
+---
+import Container from './Container.astro';
+import styles from './Footer.module.css';
+import pkg from '../../package.json';
+---
+
+<footer class={styles.footer}>
+  <Container>
+    <p>
+      &copy; {new Date().getFullYear()} Šášky, verze {pkg.version} by{' '}
+      <a href="https://github.com/podlomar/sasky">Martin Podloucký</a>
+    </p>
+  </Container>
+</footer>

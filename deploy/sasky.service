@@ -7,8 +7,8 @@ After=network.target
 Type=simple
 User=www-data
 Group=www-data
-WorkingDirectory=/var/www/sasky.podlomar.me/server
-ExecStart=/usr/bin/node server.js
+WorkingDirectory=/var/www/sasky.podlomar.me
+ExecStart=/usr/bin/node dist/server/entry.mjs
 Restart=on-failure
 RestartSec=10
 KillMode=mixed
@@ -18,21 +18,19 @@ SyslogIdentifier=sasky
 
 # Environment variables
 Environment=NODE_ENV=production
-Environment=PORT=9008
+Environment=HOST=127.0.0.1
+Environment=PORT=9000
+Environment=SASKY_DATA_DIR=/var/www/sasky.podlomar.me/data
 
 # Security settings
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/www/sasky/data
+ReadWritePaths=/var/www/sasky.podlomar.me/data
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
-
-# Resource limits
-# LimitNOFILE=65536
-# LimitNPROC=4096
 
 [Install]
 WantedBy=multi-user.target

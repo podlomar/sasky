@@ -1,32 +1,5 @@
 {
-  "compilerOptions": {
-    "target": "es2023",
-    "module": "nodenext",
-    "lib": [
-      "ES2023"
-    ],
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "moduleResolution": "nodenext",
-    "jsx": "react-jsx",
-    "typeRoots": [
-      "./src/types",
-      "./node_modules/@types"
-    ]
-  },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
 }

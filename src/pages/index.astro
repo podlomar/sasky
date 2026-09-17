@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Container from '../components/Container.astro';
+import PageHeader from '../components/PageHeader.astro';
+import GameRow from '../components/GameRow.astro';
+import { loadGames } from '../lib/db';
+import styles from '../styles/home.module.css';
+
+const games = await loadGames();
+---
+
+<Layout title="Šášky">
+  <Container>
+    <PageHeader title="Šášky" subtitle={`Celkem her: ${games.length}`} />
+
+    <div class={styles.gamesTable}>
+      <div class={styles.gamesHeader}>
+        <div>Výsledek</div>
+        <div>Datum</div>
+        <div>Popis</div>
+        <div>Akce</div>
+      </div>
+
+      {games.map((game) => <GameRow game={game} />)}
+    </div>
+
+    {games.length === 0 && (
+      <div class={styles.emptyState}>
+        <h2>Nenalezeny žádné hry</h2>
+        <p>Žádné šachové hry k zobrazení.</p>
+      </div>
+    )}
+  </Container>
+</Layout>

@@ -1,6 +1,11 @@
 #!/bin/bash
+set -euo pipefail
 
-ssh podlomar@podlomar.me "rm -rf /var/www/sasky.podlomar.me/server/*"
-scp -r dist/* podlomar@podlomar.me:/var/www/sasky.podlomar.me/server
-scp package.json package-lock.json podlomar@podlomar.me:/var/www/sasky.podlomar.me
-ssh podlomar@podlomar.me "cd /var/www/sasky.podlomar.me/server && npm install --production"
+REMOTE=podlomar@podlomar.me
+TARGET=/var/www/sasky.podlomar.me
+
+ssh "$REMOTE" "rm -rf $TARGET/dist"
+scp -r dist "$REMOTE:$TARGET/"
+scp package.json package-lock.json "$REMOTE:$TARGET/"
+ssh "$REMOTE" "cd $TARGET && npm ci --omit=dev"
+ssh "$REMOTE" "sudo systemctl restart sasky"

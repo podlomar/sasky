@@ -1,0 +1,197 @@
+---
+import { actions } from 'astro:actions';
+import { DateTime } from 'luxon';
+import Layout from '../layouts/Layout.astro';
+import Container from '../components/Container.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Panel from '../components/Panel.astro';
+import Alert from '../components/Alert.astro';
+import Button from '../components/Button.astro';
+import { loadPlayers } from '../lib/db';
+import { getTerminationOptions } from '../lib/terminations';
+import type { RejectionReason } from '../actions';
+import styles from '../styles/enter.module.css';
+
+const rejectionMessages: Record<RejectionReason, { title: string; message: string }> = {
+  samePlayer: {
+    title: 'Hráči jsou stejní',
+    message: 'Bílý a černý hráč nemohou být stejná osoba.',
+  },
+  invalidPgn: {
+    title: 'Neplatná PGN notace',
+    message: 'Zadaná PGN notace není ve správném formátu.',
+  },
+};
+
+const result = Astro.getActionResult(actions.addGame);
+
+if (result?.data?.status === 'created') {
+  return Astro.redirect('/');
+}
+
+const rejection = result?.data?.status === 'rejected' ? result.data : null;
+const values = rejection?.values ?? null;
+const rejectionMessage = rejection === null ? null : rejectionMessages[rejection.reason];
+
+const players = await loadPlayers();
+const terminationOptions = getTerminationOptions();
+const defaultDatetime = DateTime.now().setZone('Europe/Prague').toFormat("yyyy-MM-dd'T'HH:mm");
+---
+
+<Layout title="Šášky | Zadat novou hru">
+  <Container width="narrow">
+    <PageHeader title="Zadat novou hru" subtitle="Přidat novou šachovou hru do databáze" />
+
+    <form method="POST" action={actions.addGame} class={styles.gameForm}>
+      {rejectionMessage && (
+        <div class={styles.alertSection}>
+          <Alert variant="error" title={rejectionMessage.title}>
+            {rejectionMessage.message}
+          </Alert>
+        </div>
+      )}
+
+      {result?.error && rejection === null && (
+        <div class={styles.alertSection}>
+          <Alert variant="error" title="Hru se nepodařilo přidat">
+            {result.error.message}
+          </Alert>
+        </div>
+      )}
+
+      <div class={styles.formSection}>
+        <h2>Informace o hře</h2>
+
+        <div class={styles.formRow}>
+          <div class={styles.formGroup}>
+            <label for="datetime">Datum a čas</label>
+            <input
+              type="datetime-local"
+              id="datetime"
+              name="datetime"
+              value={values?.datetime ?? defaultDatetime}
+              required
+              class={styles.formInput}
+            />
+          </div>
+
+          <div class={styles.formGroup}>
+            <label for="timeControl">Časový limit</label>
+            <input
+              type="text"
+              id="timeControl"
+              name="timeControl"
+              value={values?.timeControl ?? '8+10'}
+              placeholder="např. 8+10, 5+0, Free"
+              required
+              class={styles.formInput}
+            />
+          </div>
+        </div>
+
+        <div class={styles.formGroup}>
+          <label for="description">Popis (volitelné)</label>
+          <textarea
+            id="description"
+            name="description"
+            rows="3"
+            placeholder="Popište, co se v této hře stalo..."
+            class:list={[styles.formInput, styles.formTextarea]}
+          >{values?.description ?? ''}</textarea>
+        </div>
+      </div>
+
+      <div class={styles.formSection}>
+        <h2>Hráči</h2>
+
+        <div class={styles.playersSection}>
+          <Panel class={[styles.playerGroup, styles.whitePlayerGroup].join(' ')}>
+            <h3>
+              <span class={styles.playerColorLarge}>♔</span>
+              Bílý hráč
+            </h3>
+            <div class={styles.formGroup}>
+              <label for="whitePlayer">Hráč</label>
+              <select id="whitePlayer" name="whitePlayer" required class={styles.formSelect}>
+                <option value="">Vyberte bílého hráče</option>
+                {players.map((player) => (
+                  <option value={player.name} selected={player.name === values?.whitePlayer}>
+                    {player.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </Panel>
+
+          <div class={styles.vsSeparator}>VS</div>
+
+          <Panel class={[styles.playerGroup, styles.blackPlayerGroup].join(' ')}>
+            <h3>
+              <span class={styles.playerColorLarge}>♚</span>
+              Černý hráč
+            </h3>
+            <div class={styles.formGroup}>
+              <label for="blackPlayer">Hráč</label>
+              <select id="blackPlayer" name="blackPlayer" required class={styles.formSelect}>
+                <option value="">Vyberte černého hráče</option>
+                {players.map((player) => (
+                  <option value={player.name} selected={player.name === values?.blackPlayer}>
+                    {player.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </Panel>
+        </div>
+
+        <div class={styles.formRow}>
+          <div class={styles.formGroup}>
+            <label for="result">Výsledek hry</label>
+            <select id="result" name="result" required class={styles.formSelect}>
+              <option value="">Vyberte výsledek</option>
+              <option value="1-0" selected={values?.result === '1-0'}>1-0 (Bílý vyhrává)</option>
+              <option value="0-1" selected={values?.result === '0-1'}>0-1 (Černý vyhrává)</option>
+              <option value="1/2-1/2" selected={values?.result === '1/2-1/2'}>
+                1/2-1/2 (Remíza)
+              </option>
+            </select>
+          </div>
+
+          <div class={styles.formGroup}>
+            <label for="termination">Jak hra skončila</label>
+            <select id="termination" name="termination" required class={styles.formSelect}>
+              <option value="">Vyberte typ ukončení</option>
+              {terminationOptions.map((option) => (
+                <option value={option.value} selected={option.value === values?.termination}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class={styles.formSection}>
+        <h2>PGN Notace (volitelné)</h2>
+        <div class={styles.formGroup}>
+          <label for="pgn">Herní notace</label>
+          <textarea
+            id="pgn"
+            name="pgn"
+            rows="8"
+            placeholder="Vložte PGN notaci hry..."
+            class:list={[styles.formInput, styles.formTextarea, styles.pgnTextarea]}
+          >{values?.pgn ?? ''}</textarea>
+          <div class={styles.formHelp}>
+            Pokud máte PGN záznam hry, vložte ji zde pro vytvoření přesného záznamu hry na Lichess.
+          </div>
+        </div>
+      </div>
+
+      <div class={styles.formActions}>
+        <Button href="/" variant="secondary">Zrušit</Button>
+        <Button type="submit" variant="primary">Přidat hru</Button>
+      </div>
+    </form>
+  </Container>
+</Layout>
