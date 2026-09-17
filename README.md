@@ -6,13 +6,19 @@ This guide provides step-by-step instructions for setting up the Sasky chess app
 
 ```bash
 npm install
-npm run dev      # dev server on http://localhost:5000
-npm run check    # type check
-npm run build    # production build into dist/
-npm start        # run the production build
+npm run dev         # dev server on http://localhost:5000
+npm run check       # type check
+npm run build       # production build into dist/
+npm start           # run the production build
+
+npm run db:generate # regenerate SQL migrations after editing src/lib/schema.ts
+npm run db:import   # one-off import of legacy games.json / players.json
+npm run db:studio   # browse the database
 ```
 
-Game and player data are read from JSON files in the directory given by `SASKY_DATA_DIR` (default `./data`). That directory must contain `games.json` and `players.json`; both are valid as an empty array `[]` on a fresh install.
+Data lives in a SQLite database at `SASKY_DB_PATH`, which defaults to `sasky.db` inside `SASKY_DATA_DIR` (itself defaulting to `./data`). The schema is defined in `src/lib/schema.ts`; generated migrations live in `drizzle/` and are committed to the repository.
+
+Pending migrations are applied automatically when the server opens the database, so a fresh install needs no setup beyond an existing data directory.
 
 ## Prerequisites
 
@@ -39,12 +45,8 @@ sudo apt install -y nginx nodejs npm git
 cd /var/www
 sudo git clone https://github.com/podlomar/sasky.git sasky.podlomar.me
 
-# Create data directory
+# Create data directory (the SQLite database is created here on first run)
 sudo mkdir -p /var/www/sasky.podlomar.me/data
-
-# Seed the data files if this is a fresh install
-echo '[]' | sudo tee /var/www/sasky.podlomar.me/data/games.json
-echo '[]' | sudo tee /var/www/sasky.podlomar.me/data/players.json
 
 # Set ownership
 sudo chown -R www-data:www-data /var/www/sasky.podlomar.me
@@ -62,6 +64,12 @@ exit
 ```
 
 The build produces `dist/server/entry.mjs`, a standalone server that also serves the client assets from `dist/client/`.
+
+If you are upgrading an installation that still stores data in `games.json` and `players.json`, import it once before starting the service. The JSON files are left untouched and can be kept as a backup:
+
+```bash
+sudo -u www-data npm run db:import
+```
 
 ## 3. Update Application (for future deployments)
 
@@ -101,7 +109,7 @@ Create the service file:
 sudo nano /etc/systemd/system/sasky.service
 ```
 
-Add the following content from file `sasky.service`. It runs the server on port 9000 and points `SASKY_DATA_DIR` at `/var/www/sasky.podlomar.me/data`. Then enable and start the service:
+Add the following content from file `sasky.service`. It runs the server on port 9000 and points `SASKY_DATA_DIR` at `/var/www/sasky.podlomar.me/data`, which is the only path the service is allowed to write to. Then enable and start the service:
 
 ```bash
 # Reload systemd daemon

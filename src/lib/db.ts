@@ -1,80 +1,90 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import { asc, desc, eq } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/sqlite-core';
 import { nanoid } from 'nanoid';
-import { z } from 'astro/zod';
 import { calculateEloRating } from './elo';
-import { terminationKeys } from './terminations';
+import { getDb } from './database';
+import { games, players } from './schema';
+import { startingRating, type ChessGame, type GameResult, type Player } from './types';
 
-export const gameResults = ['1-0', '0-1', '1/2-1/2'] as const;
+export { gameResults, startingRating } from './types';
+export type {
+  ChessGame,
+  GamePlayer,
+  GameRating,
+  GameResult,
+  Player,
+  RatingChange,
+} from './types';
 
-export type GameResult = (typeof gameResults)[number];
+const whitePlayers = alias(players, 'white_players');
+const blackPlayers = alias(players, 'black_players');
 
-export const startingRating = 800;
+type GameRow = typeof games.$inferSelect;
 
-const gamePlayerSchema = z.object({
-  name: z.string(),
-  fullName: z.string(),
-  rating: z.number(),
+interface JoinedGameRow {
+  game: GameRow;
+  whiteFullName: string;
+  blackFullName: string;
+}
+
+const toChessGame = ({ game, whiteFullName, blackFullName }: JoinedGameRow): ChessGame => ({
+  id: game.id,
+  datetime: game.datetime,
+  timeControl: game.timeControl,
+  url: game.url,
+  description: game.description,
+  white: { name: game.whitePlayer, fullName: whiteFullName, rating: game.whiteRating },
+  black: { name: game.blackPlayer, fullName: blackFullName, rating: game.blackRating },
+  result: game.result,
+  termination: game.termination,
+  ratingChange: { white: game.ratingChangeWhite, black: game.ratingChangeBlack },
+  pgn: game.pgn,
 });
-
-const chessGameSchema = z.object({
-  id: z.string(),
-  datetime: z.string(),
-  timeControl: z.string(),
-  url: z.string().nullable(),
-  description: z.string().nullable(),
-  white: gamePlayerSchema,
-  black: gamePlayerSchema,
-  result: z.enum(gameResults),
-  termination: z.enum(terminationKeys),
-  ratingChange: z.object({
-    white: z.number(),
-    black: z.number(),
-  }),
-  pgn: z.string().nullable(),
-});
-
-const playerSchema = gamePlayerSchema.extend({
-  games: z.array(z.object({
-    gameId: z.string(),
-    newRating: z.number(),
-  })),
-});
-
-export type GamePlayer = z.infer<typeof gamePlayerSchema>;
-export type ChessGame = z.infer<typeof chessGameSchema>;
-export type Player = z.infer<typeof playerSchema>;
-
-const dataDir = process.env.SASKY_DATA_DIR ?? 'data';
-const gamesPath = path.join(dataDir, 'games.json');
-const playersPath = path.join(dataDir, 'players.json');
 
 export const loadGames = async (): Promise<ChessGame[]> => {
-  const raw = await fs.readFile(gamesPath, 'utf-8');
-  return z.array(chessGameSchema).parse(JSON.parse(raw));
+  const rows = getDb()
+    .select({
+      game: games,
+      whiteFullName: whitePlayers.fullName,
+      blackFullName: blackPlayers.fullName,
+    })
+    .from(games)
+    .innerJoin(whitePlayers, eq(games.whitePlayer, whitePlayers.name))
+    .innerJoin(blackPlayers, eq(games.blackPlayer, blackPlayers.name))
+    .orderBy(desc(games.datetime))
+    .all();
+
+  return rows.map(toChessGame);
+};
+
+const ratingFor = (game: GameRow, playerName: string): number | null => {
+  if (game.whitePlayer === playerName) {
+    return game.whiteRating;
+  }
+  if (game.blackPlayer === playerName) {
+    return game.blackRating;
+  }
+  return null;
 };
 
 export const loadPlayers = async (): Promise<Player[]> => {
-  const raw = await fs.readFile(playersPath, 'utf-8');
-  return z.array(playerSchema).parse(JSON.parse(raw));
+  const db = getDb();
+  const playerRows = db.select().from(players).all();
+  const gameRows = db.select().from(games).orderBy(asc(games.datetime)).all();
+
+  return playerRows.map((player) => ({
+    name: player.name,
+    fullName: player.fullName,
+    rating: player.rating,
+    games: gameRows.flatMap((game) => {
+      const newRating = ratingFor(game, player.name);
+      return newRating === null ? [] : [{ gameId: game.id, newRating }];
+    }),
+  }));
 };
 
-export const saveGames = async (games: ChessGame[]): Promise<void> => {
-  await fs.writeFile(gamesPath, JSON.stringify(games, null, 2), 'utf-8');
-};
-
-export const savePlayers = async (players: Player[]): Promise<void> => {
-  await fs.writeFile(playersPath, JSON.stringify(players, null, 2), 'utf-8');
-};
-
-export const getPlayerByName = (players: Player[], name: string): Player | null => {
-  return players.find((player) => player.name === name) ?? null;
-};
-
-const sortGamesByDateDescending = (games: ChessGame[]): ChessGame[] => {
-  return [...games].sort(
-    (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime(),
-  );
+export const getPlayerByName = (playerList: Player[], name: string): Player | null => {
+  return playerList.find((player) => player.name === name) ?? null;
 };
 
 const scoreFor = (result: GameResult, colour: 'white' | 'black'): number => {
@@ -85,73 +95,71 @@ const scoreFor = (result: GameResult, colour: 'white' | 'black'): number => {
   return winner === colour ? 1 : 0;
 };
 
-const applyGameToRatings = (game: ChessGame, white: Player, black: Player): void => {
-  const newWhiteRating = calculateEloRating(
-    white.rating,
-    black.rating,
-    scoreFor(game.result, 'white'),
-  );
-  const newBlackRating = calculateEloRating(
-    black.rating,
-    white.rating,
-    scoreFor(game.result, 'black'),
-  );
+export const recalculateRatings = async (): Promise<void> => {
+  getDb().transaction((tx) => {
+    const playerRows = tx.select().from(players).all();
+    const gameRows = tx.select().from(games).orderBy(asc(games.datetime)).all();
+    const ratings = new Map(playerRows.map((player) => [player.name, startingRating]));
 
-  game.ratingChange.white = newWhiteRating - white.rating;
-  game.ratingChange.black = newBlackRating - black.rating;
-  game.white.rating = newWhiteRating;
-  game.black.rating = newBlackRating;
+    for (const game of gameRows) {
+      const whiteRating = ratings.get(game.whitePlayer);
+      const blackRating = ratings.get(game.blackPlayer);
 
-  white.rating = newWhiteRating;
-  black.rating = newBlackRating;
-  white.games.push({ gameId: game.id, newRating: newWhiteRating });
-  black.games.push({ gameId: game.id, newRating: newBlackRating });
-};
+      if (whiteRating === undefined || blackRating === undefined) {
+        throw new Error(`Player not found: ${game.whitePlayer} or ${game.blackPlayer}`);
+      }
 
-export const recalculateRatings = async (
-  games: ChessGame[],
-  players: Player[],
-): Promise<ChessGame[]> => {
-  const sorted = sortGamesByDateDescending(games);
+      const newWhite = calculateEloRating(whiteRating, blackRating, scoreFor(game.result, 'white'));
+      const newBlack = calculateEloRating(blackRating, whiteRating, scoreFor(game.result, 'black'));
 
-  for (const player of players) {
-    player.rating = startingRating;
-    player.games = [];
-  }
+      ratings.set(game.whitePlayer, newWhite);
+      ratings.set(game.blackPlayer, newBlack);
 
-  for (const game of [...sorted].reverse()) {
-    const white = getPlayerByName(players, game.white.name);
-    const black = getPlayerByName(players, game.black.name);
-
-    if (white === null || black === null) {
-      throw new Error(`Player not found: ${game.white.name} or ${game.black.name}`);
+      tx.update(games)
+        .set({
+          whiteRating: newWhite,
+          blackRating: newBlack,
+          ratingChangeWhite: newWhite - whiteRating,
+          ratingChangeBlack: newBlack - blackRating,
+        })
+        .where(eq(games.id, game.id))
+        .run();
     }
 
-    applyGameToRatings(game, white, black);
-  }
-
-  await saveGames(sorted);
-  await savePlayers(players);
-  return sorted;
+    for (const [name, rating] of ratings) {
+      tx.update(players).set({ rating }).where(eq(players.name, name)).run();
+    }
+  });
 };
 
-export const saveGame = async (game: Omit<ChessGame, 'id'>): Promise<ChessGame> => {
-  const games = await loadGames();
-  const players = await loadPlayers();
-  const newGame: ChessGame = { ...game, id: nanoid(8) };
+export const saveGame = async (game: Omit<ChessGame, 'id'>): Promise<void> => {
+  getDb()
+    .insert(games)
+    .values({
+      id: nanoid(8),
+      datetime: game.datetime,
+      timeControl: game.timeControl,
+      url: game.url,
+      description: game.description,
+      whitePlayer: game.white.name,
+      blackPlayer: game.black.name,
+      whiteRating: game.white.rating,
+      blackRating: game.black.rating,
+      result: game.result,
+      termination: game.termination,
+      ratingChangeWhite: game.ratingChange.white,
+      ratingChangeBlack: game.ratingChange.black,
+      pgn: game.pgn,
+    })
+    .run();
 
-  games.push(newGame);
-  await recalculateRatings(games, players);
-  return newGame;
+  await recalculateRatings();
 };
 
 let ratingsPass: Promise<void> | null = null;
 
 const runRatingsPass = async (): Promise<void> => {
-  const games = await loadGames();
-  const players = await loadPlayers();
-  console.log(`Loaded ${games.length} games and ${players.length} players from the database.`);
-  await recalculateRatings(games, players);
+  await recalculateRatings();
   console.log('Player ratings recalculated.');
 };
 

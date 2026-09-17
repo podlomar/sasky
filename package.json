@@ -9,7 +9,10 @@
     "preview": "astro preview",
     "start": "node ./dist/server/entry.mjs",
     "check": "astro check",
-    "deploy": "npm run build && bash deploy/deploy.sh"
+    "deploy": "npm run build && bash deploy/deploy.sh",
+    "db:generate": "drizzle-kit generate",
+    "db:import": "tsx scripts/import-json.ts",
+    "db:studio": "drizzle-kit studio"
   },
   "keywords": [
     "astro",
@@ -25,15 +28,20 @@
     "@astrojs/node": "^11.1.6",
     "@mliebelt/pgn-parser": "^1.4.19",
     "astro": "^7.3.3",
+    "better-sqlite3": "^13.0.3",
     "chart.js": "^4.5.0",
+    "drizzle-orm": "^0.45.2",
     "luxon": "^3.7.2",
     "monadix": "^1.0.6",
     "nanoid": "^5.1.6"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.5",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/luxon": "^3.7.1",
     "@types/node": "^22.10.2",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.23.13",
     "typescript": "^5.9.3"
   }
 }

@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1789648885555,
+      "tag": "0000_light_maelstrom",
+      "breakpoints": true
+    }
+  ]
+}
