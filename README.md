@@ -1,6 +1,9 @@
-# Šášky Chess Application - Server Setup Guide
+# Šášky Chess Application
 
-This guide provides step-by-step instructions for setting up the Sasky chess application on an Ubuntu server with nginx and systemd. The application is an [Astro](https://astro.build) app rendered on demand by the Node adapter, and is deployed by cloning directly from the git repository and building on the server.
+A chess game tracker with ELO ratings. The app is an [Astro](https://astro.build) site rendered on
+demand by the Node adapter, storing games and players in SQLite. It is deployed as a container to a
+single-machine [Uncloud](https://uncloud.run) cluster and served at
+[sasky.podlomar.me](https://sasky.podlomar.me).
 
 ## Local development
 
@@ -12,188 +15,127 @@ npm run build       # production build into dist/
 npm start           # run the production build
 
 npm run db:generate # regenerate SQL migrations after editing src/lib/schema.ts
-npm run db:import   # one-off import of legacy games.json / players.json
+npm run db:import   # (re)build the local database from data/*.json
 npm run db:studio   # browse the database
 ```
 
-Data lives in a SQLite database at `SASKY_DB_PATH`, which defaults to `sasky.db` inside `SASKY_DATA_DIR` (itself defaulting to `./data`). The schema is defined in `src/lib/schema.ts`; generated migrations live in `drizzle/` and are committed to the repository.
+Data lives in a SQLite database at `SASKY_DB_PATH`, which defaults to `sasky.db` inside
+`SASKY_DATA_DIR` (itself defaulting to `./data`). The schema is defined in `src/lib/schema.ts`;
+generated migrations live in `drizzle/` and are committed to the repository.
 
-Pending migrations are applied automatically when the server opens the database, so a fresh install needs no setup beyond an existing data directory.
+Pending migrations are applied automatically when the server opens the database, so a fresh install
+needs no migration step of its own.
 
-## Prerequisites
+## Deployment
 
-- Ubuntu Server (24.04 or later)
-- Node.js v22.21.0 (LTS) installed
-- nginx installed
-- sudo/root access
-- Domain: `sasky.podlomar.me` pointing to the server
+### How it fits together
 
-## 1. Install Dependencies
+| Piece | Where it lives |
+| --- | --- |
+| Container image | Built locally from `Dockerfile`, pushed straight to the cluster machine |
+| Service definition | `compose.yaml` |
+| HTTPS + certificates | Cluster-wide Caddy service, configured automatically from `x-ports` |
+| Database | Docker volume `sasky-data`, mounted at `/app/data` |
 
-```bash
-# Update system
-sudo apt update && sudo apt upgrade -y
+The cluster was created with `--no-dns`, so Uncloud does **not** manage any DNS records. The
+`sasky.podlomar.me` A record is maintained by hand and must point at the cluster machine's public IP
+before the first deploy — Caddy proves domain ownership over HTTP to issue the Let's Encrypt
+certificate, and that fails if the record is missing or stale.
 
-# Install required packages
-sudo apt install -y nginx nodejs npm git
-```
-
-## 2. Clone and Build Application
-
-```bash
-# Clone the repository
-cd /var/www
-sudo git clone https://github.com/podlomar/sasky.git sasky.podlomar.me
-
-# Create data directory (the SQLite database is created here on first run)
-sudo mkdir -p /var/www/sasky.podlomar.me/data
-
-# Set ownership
-sudo chown -R www-data:www-data /var/www/sasky.podlomar.me
-
-# Switch to www-data user for building
-sudo -u www-data bash
-
-# Install dependencies and build
-cd /var/www/sasky.podlomar.me
-npm install
-npm run build
-
-# Exit back to your user
-exit
-```
-
-The build produces `dist/server/entry.mjs`, a standalone server that also serves the client assets from `dist/client/`.
-
-If you are upgrading an installation that still stores data in `games.json` and `players.json`, import it once before starting the service. The JSON files are left untouched and can be kept as a backup:
+Verify it at any time with:
 
 ```bash
-sudo -u www-data npm run db:import
+dig +short sasky.podlomar.me      # must equal the machine's PUBLIC IP column below
+uc machine ls
 ```
 
-## 3. Update Application (for future deployments)
+### Prerequisites
 
-To update the application with the latest code:
+- The `uc` CLI installed locally, with a context pointing at the cluster (`uc ctx ls`)
+- A local Docker daemon — images are built on your machine, not on the server
+- The local machine's CPU architecture matching the server's (both `amd64` here)
+
+### Deploy
 
 ```bash
-# Switch to application directory
-cd /var/www/sasky.podlomar.me
-
-# Stop the service
-sudo systemctl stop sasky
-
-# Pull latest changes
-sudo -u www-data git pull origin master
-
-# Switch to www-data user for building
-sudo -u www-data bash
-
-# Install any new dependencies and rebuild
-npm install
-npm run build
-
-# Exit back to your user
-exit
-
-# Restart the service
-sudo systemctl start sasky
+npm run deploy      # == uc deploy
 ```
 
-Alternatively, `npm run deploy` builds locally and copies `dist/` plus the package manifests to the server over ssh, then restarts the service.
+`uc deploy` reads `compose.yaml` and then:
 
-## 4. Create Systemd Service
+1. builds the image from the `Dockerfile`, tagging it with a git-based version such as
+   `sasky/sasky:2026-09-18-101500.00728c9`;
+2. pushes it to the cluster machine, transferring only the layers it doesn't already have;
+3. creates the `sasky-data` volume if it is missing;
+4. shows a deployment plan for confirmation, then performs a rolling update, waiting for the
+   container's health check to pass before sending traffic to it.
 
-Create the service file:
+Add `-y` to skip the confirmation prompt in non-interactive contexts such as CI.
+
+Because the image is built from a clean checkout context (see `.dockerignore`), your local `data/`
+directory, `node_modules/` and `dist/` never end up inside it.
+
+### Seeding the database
+
+Players can only be created by importing them — there is no UI for it — so a brand-new deployment
+needs one seeding pass before the app is usable. Prepare the database locally, then stream it into
+the volume:
 
 ```bash
-sudo nano /etc/systemd/system/sasky.service
+npm run db:import
+
+# Fold the write-ahead log into the main file so a single file is self-contained.
+node -e "const D=require('better-sqlite3');const db=new D('data/sasky.db');db.pragma('wal_checkpoint(TRUNCATE)');db.close()"
+
+# Replace the database with the service stopped, and delete the stale WAL alongside it.
+uc stop sasky
+cat data/sasky.db | ssh root@<machine-ip> 'D=/var/lib/docker/volumes/sasky-data/_data
+  cat > "$D/sasky.db"
+  rm -f "$D/sasky.db-wal" "$D/sasky.db-shm"
+  chown 1000:1000 "$D/sasky.db"'
+uc start sasky
 ```
 
-Add the following content from file `sasky.service`. It runs the server on port 9000 and points `SASKY_DATA_DIR` at `/var/www/sasky.podlomar.me/data`, which is the only path the service is allowed to write to. Then enable and start the service:
+**Do not seed by piping into a running container.** The database runs in WAL mode, so the first
+boot leaves a `sasky.db-wal` next to it holding the empty schema. Overwriting only `sasky.db` while
+that WAL survives makes SQLite replay the old, empty pages over the new file — the app then reports
+an empty database even though `sasky.db` is byte-for-byte correct. The WAL and `-shm` files must be
+deleted together with the swap, which is why this is done on the host with the service stopped.
+
+Verify afterwards:
 
 ```bash
-# Reload systemd daemon
-sudo systemctl daemon-reload
-
-# Enable service to start on boot
-sudo systemctl enable sasky
-
-# Start the service
-sudo systemctl start sasky
-
-# Check status
-sudo systemctl status sasky
+uc exec -T sasky node -e "const D=require('/app/node_modules/better-sqlite3');const db=new D('/app/data/sasky.db',{readonly:true});console.log(db.prepare('select count(*) c from games').get().c)"
 ```
 
-## 5. Configure Nginx
-
-### Create the nginx site configuration:
+### Operating the service
 
 ```bash
-sudo nano /etc/nginx/sites-available/sasky.podlomar.me
+uc ls                     # services in the cluster and their endpoints
+uc inspect sasky          # containers, image version, machine placement
+uc logs -f sasky          # follow application logs
+uc exec sasky sh          # shell inside the running container
+uc caddy config           # generated Caddyfile, to confirm the route exists
 ```
 
-Add the content of `nginx.conf`:
-
-### Enable the site:
+To back the database up, stream it out of the container:
 
 ```bash
-# Create symbolic link to enable the site
-sudo ln -s /etc/nginx/sites-available/sasky.podlomar.me /etc/nginx/sites-enabled/
-
-# Remove default site if it exists
-sudo rm -f /etc/nginx/sites-enabled/default
-
-# Test nginx configuration
-sudo nginx -t
-
-# Reload nginx
-sudo systemctl reload nginx
+uc exec -T sasky sh -c 'cat /app/data/sasky.db' > sasky-backup-$(date +%F).db
 ```
 
-## 6. Configure Firewall
+The volume survives redeploys and `uc rm sasky`; delete it deliberately with
+`uc volume rm sasky-data` if you ever want to start from an empty database.
 
-```bash
-# Allow SSH, HTTP, and HTTPS
-sudo ufw allow 22/tcp
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
+### Configuration
 
-# Enable firewall
-sudo ufw --force enable
-```
+The container is configured entirely through environment variables set in `compose.yaml`:
 
-## 7. Set Up SSL with Let's Encrypt (Recommended)
+| Variable | Value | Purpose |
+| --- | --- | --- |
+| `HOST` | `0.0.0.0` | Astro's Node server binds to localhost otherwise, making it unreachable from Caddy |
+| `PORT` | `3000` | Must match the container port in `x-ports` |
+| `SASKY_DATA_DIR` | `/app/data` | The mounted volume |
+| `SASKY_MIGRATIONS_DIR` | `/app/drizzle` | Migrations applied at startup |
 
-```bash
-# Install Certbot
-sudo apt install certbot python3-certbot-nginx
-
-# Obtain SSL certificate
-sudo certbot --nginx -d sasky.podlomar.me
-
-# Test automatic renewal
-sudo certbot renew --dry-run
-```
-
-## 8. Verify Installation
-
-### Check that everything is running:
-
-```bash
-# Check service status
-sudo systemctl status sasky
-
-# Check nginx status
-sudo systemctl status nginx
-
-# Check if port 9000 is listening
-sudo ss -tlnp | grep :9000
-
-# Check logs
-sudo journalctl -u sasky -f
-```
-
-### Test the application:
-
-Visit `http://sasky.podlomar.me` (or `https://sasky.podlomar.me` if SSL is configured) Your Sasky chess application should now be running!
+To serve a different hostname, change it in `x-ports` and point that DNS record at the machine.

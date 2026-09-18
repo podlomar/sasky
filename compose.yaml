@@ -1,0 +1,38 @@
+name: sasky
+
+services:
+  sasky:
+    build: .
+    # No `image:` on purpose: uc tags each build with a git-based version
+    # (e.g. sasky/sasky:2026-09-18-101500.00728c9) and pushes it to the cluster.
+
+    # Published through the cluster's Caddy, which obtains and renews the
+    # Let's Encrypt certificate for this hostname. The cluster was created with
+    # --no-dns, so the sasky.podlomar.me A record is managed manually and must
+    # point at the machine's public IP for the certificate to be issued.
+    x-ports:
+      - sasky.podlomar.me:3000/https
+
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      SASKY_DATA_DIR: /app/data
+      SASKY_MIGRATIONS_DIR: /app/drizzle
+
+    volumes:
+      - sasky-data:/app/data
+
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+volumes:
+  sasky-data:
