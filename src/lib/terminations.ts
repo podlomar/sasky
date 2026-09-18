@@ -27,6 +27,11 @@ const terminations = {
     description: "Hra skončila remízou kvůli trojímu opakování pozice.",
     standard: 'normal',
   },
+  "insufficient material": {
+    name: "Nedostatečný materiál",
+    description: "Hra skončila remízou kvůli nedostatku materiálu k dání matu.",
+    standard: 'normal',
+  },
   "50 move rule": {
     name: "Pravidlo 50 tahů",
     description: "Hra skončila remízou podle pravidla 50 tahů.",
