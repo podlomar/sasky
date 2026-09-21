@@ -139,3 +139,25 @@ The container is configured entirely through environment variables set in `compo
 | `SASKY_MIGRATIONS_DIR` | `/app/drizzle` | Migrations applied at startup |
 
 To serve a different hostname, change it in `x-ports` and point that DNS record at the machine.
+
+### CSRF origin check
+
+`astro.config.mjs` sets `security: { checkOrigin: false }`. This is required behind the cluster's
+Caddy and must stay off as long as TLS is terminated at the proxy.
+
+Astro's origin check compares the browser's `Origin` header against the URL the server builds for
+the request. In standalone mode that URL's protocol comes from `req.socket.encrypted` alone — see
+`createRequestFromNodeRequest` in `astro/dist/core/app/node.js` — and `X-Forwarded-Proto` is never
+consulted, even though Caddy sends it. Caddy terminates TLS and proxies plain HTTP to `:3000`, so
+the server computes `http://sasky.podlomar.me` while the browser sends `https://sasky.podlomar.me`.
+Every form POST then fails with `403 Cross-site POST form submissions are forbidden`, which in
+practice means the "enter a game" form is unusable in production while GET pages work fine.
+
+Neither Astro 7 nor `@astrojs/node` offers a trust-proxy option, and `security.allowedDomains` only
+gates `X-Forwarded-Host`, not the protocol. Turning the check off costs nothing here: the app has no
+authentication and no sessions (`session: false`), so anyone who can reach `/enter` can already
+submit a game. If authentication is ever added, replace this with an equivalent check in
+`src/middleware.ts` that derives the expected origin from `X-Forwarded-Proto` and `Host`.
+
+Note that `Astro.url` is likewise `http://` rather than `https://` in production for the same
+reason. Nothing currently depends on it, but keep it in mind before building absolute URLs from it.
